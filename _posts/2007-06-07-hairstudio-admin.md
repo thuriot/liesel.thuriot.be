@@ -1,7 +1,7 @@
 ---
 layout: page
-title:  Hairstudio Admin
-date:   2007-06-07 09:55:00
+title: Hairstudio Admin
+date: 2007-06-07 09:55:00
 categories: [Projects]
 ---
 

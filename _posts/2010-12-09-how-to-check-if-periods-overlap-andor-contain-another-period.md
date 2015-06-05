@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  How to check if periods overlap and/or contain another period?
-date:   2010-12-09 11:39:00
+title: How to check if periods overlap and/or contain another period?
+date: 2010-12-09 11:39:00
 categories: [C#, Helper, DateTime]
 ---
 

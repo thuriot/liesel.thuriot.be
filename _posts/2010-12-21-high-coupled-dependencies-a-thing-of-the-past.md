@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  Highly coupled dependencies, a thing of the past.
-date:   2010-12-21 13:38:00
+title: Highly coupled dependencies, a thing of the past.
+date: 2010-12-21 13:38:00
 categories: [C#, Coupling, Injection, Depencency, IoC]
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  How to get Windows 7 to look amazing
-date:   2010-06-01 02:24:00
+title: How to get Windows 7 to look amazing
+date: 2010-06-01 02:24:00
 categories: [Customization, Windows]
 ---
 

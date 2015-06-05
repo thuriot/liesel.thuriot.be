@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  Guard your code using LINQ and Reflection
-date:   2010-12-23 10:13:00
+title: Guard your code using LINQ and Reflection
+date: 2010-12-23 10:13:00
 categories: [C#, LINQ, Reflection, Guard]
 ---
 

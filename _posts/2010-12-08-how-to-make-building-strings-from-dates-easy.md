@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  How to make building Strings from dates easy?
-date:   2010-12-08 14:47:00
+title: How to make building Strings from dates easy?
+date: 2010-12-08 14:47:00
 categories: [C#, Format, Helper, DateTime]
 ---
 
