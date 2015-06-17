@@ -1,0 +1,11 @@
+- name: Projects
+  icon: projects
+  url: /projects
+  
+- name: GitHub
+  icon: git
+  url: /github
+  
+- name: Curriculum Vitae
+  icon: curriculum-vitae
+  url: /cv
