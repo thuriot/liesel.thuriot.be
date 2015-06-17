@@ -73,6 +73,6 @@ String date = Helpers.PrintHelper.Print(DateTime.Now);
 
 The variable "date" will then contain the datetime, formatted beautifully, including ordinals.
 
-```markup
+```xml
 8th of December 2010 at 14:46:00
 ```

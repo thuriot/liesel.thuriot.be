@@ -1,6 +1,6 @@
 ---
 layout: post
-title: WPF: A Model First Approach
+title: "WPF: A Model First Approach"
 date: 2014-12-03 19:05:00
 cover: http://cdn.thuriot.be/Covers/wpf.jpg
 categories: [Model First, .NET, WPF]
@@ -43,7 +43,7 @@ First step, get a dll from my GitHub repo: [Nova.Bindings](https://github.com/St
 
 Second, merge Nova.Bindings' `ResourceDictionary` into your app's dictionary.
 
-```markup
+```xml
 <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Nova.Bindings;component/ValueEditor.xaml" />
 </ResourceDictionary.MergedDictionaries>
@@ -55,7 +55,7 @@ It will be the only editor you'll ever use again!
 
 A change in the model? No problem! The Bindings will take care of it for you!
 
-```markup
+```xml
 <TextBlock   Grid.Column="0" Text="{LabelFor Model.Property}" />
 <ValueEditor Grid.Column="1" Value="{ValueBinding Model.Property}" />
 ```
@@ -250,7 +250,7 @@ public interface IRadioButtonDefinition : IDefinition
 
 To make life easier, constants are available! The `Editor` is defined as a string rather than an enum to make it easier to add your own implementations!
 
-```markup
+```xml
 Nova.Bindings.ValueEditor.Definitions.ValueTextEditor
 Nova.Bindings.ValueEditor.Definitions.ValueCheckBoxEditor
 Nova.Bindings.ValueEditor.Definitions.ValueRadioButtonEditor
@@ -263,7 +263,7 @@ A template can easily be added by adding a similar template into the App's Resou
 
 Note that the Template keys are the same as the Editor constants that IDefinition supplies!
 
-```markup
+```xml
 <ControlTemplate x:Key="ValueTextEditor" TargetType="n:ValueEditor">
     <TextBox x:Name="PART_ValueEditor"
              Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />

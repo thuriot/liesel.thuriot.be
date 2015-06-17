@@ -71,7 +71,7 @@ And of course, some test cases. Period 1 starts March 23rd and stops March 28th.
 
 **Testcases for Overlap**
 
-```markup
+```xml
 18/3 – 25/3 –> true  &&	true  –> true
 18/3 – 29/3 –> true  &&	true  –> true
 25/3 – 29/3 –> true  &&	true  –> true
@@ -82,7 +82,7 @@ And of course, some test cases. Period 1 starts March 23rd and stops March 28th.
 
 **Testcases for Contains**
 
-```markup
+```xml
 18/3 – 25/3 –> false && true  –> false
 18/3 – 29/3 –> false && false –> false
 25/3 – 29/3 –> true  && false –> false

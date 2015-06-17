@@ -39,7 +39,7 @@ Hold your horses, here comes the tricky part. What if you’re going a step furt
 #Hoster as a package
 Because all of the separate parts can easily be managed as NuGet dependencies, it would be very useful if the actual hoster executable was distributed as a NuGet as well. Starting NuGet v2.3, the packages support including custom targets and props files. Writing one to copy the hoster to the output folder would then be peanuts.
 
-```markup
+```xml
 < ?xml version="1.0" encoding="utf-8"?>
 <project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
@@ -64,7 +64,7 @@ The above targets file will automatically copy my hoster executable, included in
 
 As a fix for this issue, I wrote my own custom targets file that picks up in the NuGet build chain and imported it in my hoster project.
 
-```markup
+```xml
 < ?xml version="1.0" encoding="utf-8"?>
 <project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
         
@@ -117,7 +117,7 @@ As a fix for this issue, I wrote my own custom targets file that picks up in the
 The above script will temporarily overwrite the NuGet build command and replace it with a custom one. The custom build command will read out the Assembly Informational version attribute of the package you're trying to build and use it to build and version the Nuget package we desire. The actual nuspec I used as a template looks like this:
 
 
-```markup
+```xml
 < ?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.3">

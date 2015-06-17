@@ -1,6 +1,6 @@
 ---
 layout: post
-title: WF in WPF: Handing over control to the user
+title: "WF in WPF: Handing over control to the user"
 date: 2013-06-31 09:30:00
 categories: [C#, WPF, .NET, UI, WF]
 ---
@@ -53,7 +53,7 @@ This sample shows how to do it in only a few lines of *(granted, quick and dirty
 
 ####Window.xaml
 
-```markup
+```xml
 <window x:Class="MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

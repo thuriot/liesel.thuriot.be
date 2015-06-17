@@ -105,7 +105,7 @@ All in all, if all you want to do is supply a new non-supported language for you
 
 If we'd want to compile a resource file for the en-US culture, commands would be as following:
 
-```markup
+```xml
 resgen.exe /compile xxx.en-US.resx
 al.exe /out:TheApplication.xxx.en-US.resources.dll /embedresource: xxx.en-US.resources
 ```

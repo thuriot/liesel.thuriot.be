@@ -11,7 +11,7 @@ So I started working on a little tool to help me build my NuSpec on  the fly and
 
 The post build event can be implemented like this:
 
-```markup
+```xml
 if "$(ConfigurationName)" == "Release" (  
   del /Q /F *.tmp
   "R:\PathToTheExecutable\NuGet.BuildAndDeploy.exe" /dll "lib\$(TargetFileName)" /outputdir "$(TargetDir)\.." /projectUrl http://thuriot.be/ /tags Small helper framework /dependencies "Ninject 2.2"
@@ -20,7 +20,7 @@ if "$(ConfigurationName)" == "Release" (
 
 The build output then looks like this:
 
-```markup
+```xml
 ------ Rebuild All started: Project: Aikido, Configuration: Release Any CPU ------
   Aikido -&gt; E:\Projects\Aikido\Release\lib\Aikido.dll
   Generating the NuSpec file for Aikido Framework version 1.0.0.0.
@@ -40,7 +40,7 @@ Project not selected to build for this solution configuration
 
 The generated NuSpec file looks like this:
 
-```markup
+```xml
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>

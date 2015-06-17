@@ -19,7 +19,7 @@ A sample project has been set up [here](https://github.com/steventhuriot/hyperqu
 
 First, create a new project. All you need to start is a reference to `HyperQube.Library`. To make life easy, a nuget package is available!
 
-```markup
+```xml
 Install-Package HyperQube.Library
 ```
 

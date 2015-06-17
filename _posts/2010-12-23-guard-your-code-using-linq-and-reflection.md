@@ -340,7 +340,7 @@ private void Run()
 
 with this message. I've split it into several lines for readability. The actual message is in one line:
 
-```markup
+```xml
 <NULL> has been passed: Class: Thuriot.Tests.GuardTest - Method: testMethod -
 Args: stringBuilder1 = [NULL], builder2 = [Hello], object3 = [, world!]
 ```

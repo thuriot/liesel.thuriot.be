@@ -373,7 +373,7 @@ Now we come to the interesting part, what exactly will the output be?
 
 Finally, *NinjectParamsWithBothAttributes* will receive all *Strings*.
 
-```language-csharp
+```csharp
 {string[5]}
     [0]: "Third String will only be passed to FirstNinjectAttribute"
     [1]: "Fourth String will only be passed to SecondNinjectAttribute"
