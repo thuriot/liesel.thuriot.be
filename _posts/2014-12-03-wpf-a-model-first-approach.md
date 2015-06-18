@@ -6,9 +6,7 @@ cover: http://cdn.thuriot.be/Covers/wpf.jpg
 categories: [Model First, .NET, WPF]
 ---
 
-#The usual approach
-
-When building a WPF application, even when using a `ViewModel`, fact remains that the views are rather tightly coupled by the model you're using. 
+The usual approach, when building a WPF application, even when using a `ViewModel`, fact remains that the views are rather tightly coupled by the model you're using. 
 
 Don't get me wrong though, a well built application will still be easy to adjust when the model changes. But here's the catch, it won't be an unusual scenario having to slightly adjust your view when reworking your model.
 

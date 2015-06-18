@@ -5,8 +5,6 @@ date: 2014-09-23 17:22:00
 categories: [Projects]
 ---
 
-[![Build status](https://ci.appveyor.com/api/projects/status/f9sy6bfpfc6dnoyu)](https://ci.appveyor.com/project/StevenThuriot/hyperqube)
-
 [HyperQube](https://github.com/StevenThuriot/HyperQube) is(/started as) an IFTTT variant, built on top of PushBullet, created for the desktop.
 
 It connects to PushBullet's websocket using the API key provided in your account settings. It filters out the messages the plugins are interested in using [Reactive Extensions](https://github.com/Reactive-Extensions).

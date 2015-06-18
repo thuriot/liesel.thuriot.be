@@ -5,8 +5,9 @@ date: 2013-06-31 09:30:00
 categories: [C#, WPF, .NET, UI, WF]
 ---
 
-[![Set in Stone](//cdn.thuriot.be/WFinWPF/Stone.jpg)](//cdn.thuriot.be/WFinWPF/Stone.jpg)
 ...because delivering an application set in stone doesn't always cut it.
+
+[![Set in Stone](//cdn.thuriot.be/WFinWPF/Stone.jpg)](//cdn.thuriot.be/WFinWPF/Stone.jpg)
 
 #What is which and which is what??
 Before we begin, it is important that we understand all of the concepts used. So we will go over them first.
