@@ -3,7 +3,7 @@
   url: /projects
   
 - name: GitHub
-  icon: github
+  icon: github-alt
   url: /github
   
 - name: Curriculum Vitae
