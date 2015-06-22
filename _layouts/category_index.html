@@ -1,0 +1,55 @@
+---
+layout: base
+templateType: tag
+---
+
+{% assign subscription = page.category | titleize %}
+{% assign subscriptionUrl = page.subscriptionUrl %}
+
+{% include sidebar.html %}
+
+{% capture slugCategory %}{{page.category | slugify }}{% endcapture %}
+{% if site.data.tags[slugCategory].cover %}
+    {% assign cover = site.data.tags[slugCategory].cover %}
+{% else %}
+    {% assign cover = site.cover %}
+{% endif %}
+
+{% if site.data.tags[slugCategory].title %}
+    {% assign title = site.data.tags[slugCategory].title %}
+{% else %}
+    {% capture title %}{{ page.category | titleize }}{% endcapture %}
+{% endif %}
+
+
+{% if cover %}
+<div class="main-header post-head" style="background-image: url({{ cover }})"></div>
+{% endif %}
+
+<main class="narrow-content" role="main">
+    <div class="extra-pagination inner">
+        {% include pagination.html %}
+    </div>
+
+    <div class="main-header-content inner">
+        <h1 class="page-title">{{ title }}</h1>
+        <h2 class="page-description">A {{paginator.total_posts}}-post collection</h2>
+    </div>
+    
+    {% for post in paginator.posts %}    
+    <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="{{ post.url }}">{{ post.title }}</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>{{ post.excerpt | truncatewords: 30 | markdownify }} <a class="read-more" href="{{ post.url }}">»</a></p>
+        </section>
+        <footer class="post-meta">
+            {% include categories.html %}
+            <time class="post-date" datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date: "%d %B %Y" }}</time>  
+        </footer>
+    </article>
+    {% endfor %}
+    
+  {% include pagination.html %}
+</main>
