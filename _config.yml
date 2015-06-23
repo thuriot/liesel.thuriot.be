@@ -20,17 +20,17 @@ gems:
 # Configure beneath this line #
 # ########################### #
 
-name: Your Jekyll Site
-description: Blogging about things
+name: Steven Thuriot.be
+description: Thoughts, stories and ideas.
 meta_description: Blogging about things on your new Jekyll site
 url: localhost:4000
 scheme: http #mainly used for xml feeds
 
 
-logo: false
-cover: false
+logo: //cdn.thuriot.be/Avatars/Raven.jpg
+cover: //cdn.thuriot.be/Wall2.png
 disqus: false
-author: author-slug
+author: steven
 language: English
 
 # ########################### #
