@@ -101,7 +101,7 @@ Since this post has been receiving quite a few questions that can be solved in m
 
 The code supplied in my post gives the user of your framework more freedom to tinker with the actual resources when using your dll without having to do anything too fancy, e.g. change existing main resources or change things during runtime without changing the current culture. 
 
-All in all, if all you want to do is supply a new non-supported language for your dll or any third party dll that you have the resx file for, supplying a completely new resource dll is the **best** way to go. Your users can then just create their own resx file and compile it into a satellite resource assembly using [Resource File Generator](http://msdn.microsoft.com/en-us/library/ccec7sz1.aspx) to compile the *resx* to a *.resources* file and then compile that file to a *resources.dll* using [Assembly Linker](http://msdn.microsoft.com/en-us/library/c405shex.aspx").
+All in all, if all you want to do is supply a new non-supported language for your dll or any third party dll that you have the resx file for, supplying a completely new resource dll is the **best** way to go. Your users can then just create their own resx file and compile it into a satellite resource assembly using [Resource File Generator](http://msdn.microsoft.com/en-us/library/ccec7sz1.aspx) to compile the *resx* to a *.resources* file and then compile that file to a *resources.dll* using [Assembly Linker](http://msdn.microsoft.com/en-us/library/c405shex.aspx).
 
 If we'd want to compile a resource file for the en-US culture, commands would be as following:
 
