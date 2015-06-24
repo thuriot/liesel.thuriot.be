@@ -17,7 +17,7 @@ The panel has 4 main sections. The first one is the start page. It will inform y
 
 [![Page management](//cdn.thuriot.be/Site/Site2_thumb.png)](//cdn.thuriot.be/Site/Site2.png)
 
-The second part is the page manager. It's written in a combination of Javascript (Front-end) and PHP (Back-end). The idea behind this site is that each page belongs to a certain subject. For instance, the page at "http://thuriot.be/Projects/thuriot-be" is called "thuriot-be" and belongs to the subject "Projects". When there is only a subject given and no page name, e.g. "http://thuriot.be/Projects", the page name will automatically be the "index" page of that subject.
+The second part is the page manager. It's written in a combination of Javascript (Front-end) and PHP (Back-end). The idea behind this site is that each page belongs to a certain subject. For instance, the page at `thuriot.be/thuriot-be` is called "thuriot-be" and belongs to the subject "Projects". When there is only a subject given and no page name, e.g. `thuriot.be/Projects`, the page name will automatically be the "index" page of that subject.
 
 [![Button management](//cdn.thuriot.be/Site/Site3_thumb.png)](//cdn.thuriot.be/Site/Site3.png)
 
