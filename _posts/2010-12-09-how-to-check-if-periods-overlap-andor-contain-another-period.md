@@ -8,6 +8,7 @@ categories: [C#, Helper, DateTime]
 Checking for overlap can be quite tricky. It's not hard at all to make the whole process far too complicated, resulting in a lot of overhead. Because of this, I decided to think about the easiest way to check for this and expand my helper class from the previous post.
 
 Imagine having a class called `Period`. This class contains a start and end date.
+
 ```csharp
 public class Period
 {
