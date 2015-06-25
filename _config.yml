@@ -9,7 +9,7 @@ paginate_path: "/page/:num/"
 author_dir: author
 category_dir: tag
 
-exclude: [README.md, LICENSE, vendor, Gemfile]
+exclude: [README.md, LICENSE, vendor, Gemfile, deploy.sh]
 
 gems:
   - jekyll-sitemap
@@ -23,13 +23,13 @@ gems:
 name: Steven Thuriot.be
 description: Thoughts, stories and ideas.
 meta_description: Blogging about things on your new Jekyll site
-url: localhost:4000
+url: steven.thuriot.be
 scheme: http #mainly used for xml feeds
 
 
 logo: //cdn.thuriot.be/Avatars/Raven.jpg
 cover: //cdn.thuriot.be/Wall2.png
-disqus: false
+disqus: thuriot
 author: steven
 language: English
 
