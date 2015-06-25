@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; UI]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://localhost:4000</link> <link href="http://localhost:4000/tag/ui/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[WF in WPF: Handing over control to the user]]></title> <description><![CDATA[...because delivering an application set in stone doesn&#39;t always cut it. ]]></description> <link>http://localhost:4000/wf-in-wpf-handing-over-control-to-the-user</link> <guid isPermaLink="true">http://localhost:4000/wf-in-wpf-handing-over-control-to-the-user</guid> <pubDate>2013-07-01T09:30:00+00:00</pubDate> <content:encoded><![CDATA[<p>...because delivering an application set in stone doesn&#39;t always cut it.</p> <p><a href="//cdn.thuriot.be/WFinWPF/Stone.jpg"><img src="//cdn.thuriot.be/WFinWPF/Stone.jpg" alt="Set in Stone"></a></p> <h1>What is which and which is what??</h1> <p>Before we begin, it is important that we understand all of the concepts used. So we will go over them first.</p> <h2>WF: Windows Workflow Foundation</h2> <p>Workflow foundation is a Microsoft technology that provides the developer with an easy way to host an in-process workflow engine.</p> <p>A workflow is a series of distinct programming steps or phases. A step in workflow is also referred to as an “Activity”. The .NET framework already provides a huge list of these activities, e.g. “Writeline”. While most things can already be achieved using these predefined activities, it is also possible for the developer to create their very own activities.</p> <p>These activities can be used as building blocks to visually assemble a workflow.</p> <p><a href="//cdn.thuriot.be/WFinWPF/Chart.jpg"><img src="//cdn.thuriot.be/WFinWPF/Chart.jpg" alt=".NET Framework Chart"></a></p> <h2>WPF: Windows Presentation Foundation</h2> <p>The Presentation Foundation is a graphical subsystem for rendering user interfaces in Windows-based applications. WPF runs on top of DirectX.</p> <p>WPF views are built using XAML. This is an XML-based language to define and link various UI elements.</p> <h1>Handing over control?</h1> <h2>Why?</h2> <p>A lot of the applications we build on a daily basis have a pretty solid foundation. The general guidelines are written down. These are then turned into code and a single purpose application is built.</p> <p>But what happens when the requirements can change on a daily basis? Or when they can differ greatly on the context they’re used in?</p> <p>This can be solved by handing over the control to the end user. By handing over simple building blocks, rather than lines of code written in stone, we can enable the user to customize the application to their needs at that particular time in an easy and playful manner.</p> <p><a href="//cdn.thuriot.be/WFinWPF/Lego.jpg"><img src="//cdn.thuriot.be/WFinWPF/Lego.jpg" alt="Lego Building Blocks"></a></p> <p>By teaching the end user how to play with these blocks (or rather, Workflow Activities), (s)he can constantly keep shaping the application to their needs.</p> <h2>How?</h2> <p>Wait a minute... All of this sounds rather hard! The end user won’t be happy with a giant software bill after developing all of this...</p> <p>While it could be a lot of work, it is very easy to achieve this goal by combining WF with WPF!</p> <p>The .NET framework comes with a Workflow designer specifically for WPF. With only a few lines of code, we can offer the end user a visual designer that is easy to use. By dragging and dropping activity blocks, a workflow that suits the user’s needs can be set up in a matter of minutes.</p> <p>Not only is it easy to set up, it’s also very easy to execute, save and load workflows into the application! This way, the end user can set up several workflows they often require and load them up when needed.</p> <h3>Snippet</h3> <p>This sample shows how to do it in only a few lines of <em>(granted, quick and dirty)</em> code:</p> <h4>Window.xaml</h4> <div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;window</span> <span class="na">x:Class=</span><span class="s">&quot;MainWindow&quot;</span>
+        <span class="na">xmlns=</span><span class="s">&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;</span>
+        <span class="na">xmlns:x=</span><span class="s">&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;</span>
+        <span class="na">Title=</span><span class="s">&quot;MainWindow&quot;</span> <span class="na">Height=</span><span class="s">&quot;350&quot;</span> <span class="na">Width=</span><span class="s">&quot;525&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;grid</span> <span class="na">x:Name=</span><span class="s">&quot;_Grid&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;/grid&gt;&lt;grid</span> <span class="err">.ColumnDefinitions</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;columndefinition</span> <span class="na">Width=</span><span class="s">&quot;Auto&quot;</span><span class="nt">&gt;&lt;/columndefinition&gt;</span>
+            <span class="nt">&lt;columndefinition</span> <span class="na">Width=</span><span class="s">&quot;*&quot;</span><span class="nt">&gt;&lt;/columndefinition&gt;</span>
+            <span class="nt">&lt;columndefinition</span> <span class="na">Width=</span><span class="s">&quot;Auto&quot;</span><span class="nt">&gt;&lt;/columndefinition&gt;</span>
+        <span class="nt">&lt;/grid&gt;</span>
+
+        <span class="nt">&lt;contentpresenter</span> <span class="na">Grid.Column=</span><span class="s">&quot;1&quot;</span> <span class="na">Content=</span><span class="s">&quot;{Binding View}&quot;</span><span class="nt">&gt;&lt;/contentpresenter&gt;</span>
+
+<span class="nt">&lt;/window&gt;</span>
+</code></pre></div> <h4>Window.xaml.cs</h4> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">CreateDesigner</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">dm</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DesignerMetadata</span><span class="p">();</span>
+    <span class="n">dm</span><span class="p">.</span><span class="n">Register</span><span class="p">();</span>
+
+    <span class="n">_designer</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WorkflowDesigner</span><span class="p">();</span>
+    <span class="n">_designer</span><span class="p">.</span><span class="n">Load</span><span class="p">(</span><span class="k">new</span> <span class="n">Sequence</span><span class="p">());</span>
+
+    <span class="kt">var</span> <span class="n">designerView</span> <span class="p">=</span> <span class="n">_designer</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">GetService</span><span class="p">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">DesignerView</span><span class="p">&amp;</span><span class="n">gt</span><span class="p">;();</span>
+
+    <span class="n">designerView</span><span class="p">.</span><span class="n">WorkflowShellBarItemVisibility</span> <span class="p">=</span>
+        <span class="n">ShellBarItemVisibility</span><span class="p">.</span><span class="n">Imports</span> <span class="p">|</span>
+        <span class="n">ShellBarItemVisibility</span><span class="p">.</span><span class="n">MiniMap</span> <span class="p">|</span>
+        <span class="n">ShellBarItemVisibility</span><span class="p">.</span><span class="n">Variables</span> <span class="p">|</span>
+        <span class="n">ShellBarItemVisibility</span><span class="p">.</span><span class="n">Arguments</span> <span class="p">|</span>
+        <span class="n">ShellBarItemVisibility</span><span class="p">.</span><span class="n">Zoom</span><span class="p">;</span>
+
+    <span class="n">ToolboxControl</span> <span class="n">tc</span> <span class="p">=</span> <span class="n">GetToolboxControl</span><span class="p">();</span>
+    <span class="n">Grid</span><span class="p">.</span><span class="n">SetColumn</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+
+    <span class="n">_Grid</span><span class="p">.</span><span class="n">Children</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">tc</span><span class="p">);</span>
+
+    <span class="kt">var</span> <span class="n">propertyInspectorView</span> <span class="p">=</span> <span class="n">_designer</span><span class="p">.</span><span class="n">PropertyInspectorView</span><span class="p">;</span>
+
+    <span class="n">Grid</span><span class="p">.</span><span class="n">SetColumn</span><span class="p">(</span><span class="n">propertyInspectorView</span><span class="p">,</span> <span class="m">2</span><span class="p">);</span>
+    <span class="n">_Grid</span><span class="p">.</span><span class="n">Children</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">propertyInspectorView</span><span class="p">);</span>
+
+    <span class="n">DataContext</span> <span class="p">=</span> <span class="n">_designer</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">static</span> <span class="n">ToolboxControl</span> <span class="nf">GetToolboxControl</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// Create the ToolBoxControl.</span>
+    <span class="kt">var</span> <span class="n">ctrl</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ToolboxControl</span><span class="p">();</span>
+
+    <span class="c1">// Create a category.</span>
+    <span class="kt">var</span> <span class="n">category</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ToolboxCategory</span><span class="p">(</span><span class="s">&quot;category1&quot;</span><span class="p">);</span>
+
+    <span class="c1">// Create Toolbox items.</span>
+    <span class="kt">var</span> <span class="n">tool1</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ToolboxItemWrapper</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Assign</span><span class="p">));</span>
+    <span class="kt">var</span> <span class="n">tool2</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ToolboxItemWrapper</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Sequence</span><span class="p">));</span>
+    <span class="kt">var</span> <span class="n">tool3</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ToolboxItemWrapper</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">WriteLine</span><span class="p">));</span>
+
+    <span class="c1">// Add the Toolbox items to the category.</span>
+    <span class="n">category</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">tool1</span><span class="p">);</span>
+    <span class="n">category</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">tool2</span><span class="p">);</span>
+    <span class="n">category</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">tool3</span><span class="p">);</span>
+
+    <span class="c1">// Add the category to the ToolBox control.</span>
+    <span class="n">ctrl</span><span class="p">.</span><span class="n">Categories</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">category</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">ctrl</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div> <h3>Executing a workflow:</h3> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">_designer</span><span class="p">.</span><span class="n">Flush</span><span class="p">();</span>
+<span class="kt">string</span> <span class="n">workflow</span> <span class="p">=</span> <span class="n">_designer</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+<span class="kt">var</span> <span class="n">encoding</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ASCIIEncoding</span><span class="p">();</span>
+<span class="kt">var</span> <span class="n">bytes</span> <span class="p">=</span> <span class="n">encoding</span><span class="p">.</span><span class="n">GetBytes</span><span class="p">(</span><span class="n">workflow</span><span class="p">);</span>
+
+<span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">bytes</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">activity</span> <span class="p">=</span> <span class="n">ActivityXamlServices</span><span class="p">.</span><span class="n">Load</span><span class="p">(</span><span class="n">stream</span><span class="p">);</span>
+
+    <span class="kt">var</span> <span class="n">invoker</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WorkflowInvoker</span><span class="p">(</span><span class="n">activity</span><span class="p">);</span>
+    <span class="n">invoker</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div> <h3>Result:</h3> <p><a href="//cdn.thuriot.be/WFinWPF/Result.png"><img src="//cdn.thuriot.be/WFinWPF/Result.png" alt="WPF View Result"></a></p> ]]></content:encoded> </item> </channel> </rss>

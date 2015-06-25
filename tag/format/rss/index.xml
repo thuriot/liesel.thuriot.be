@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; Format]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://localhost:4000</link> <link href="http://localhost:4000/tag/format/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[How to make building Strings from dates easy?]]></title> <description><![CDATA[While the DateTime object might already have quite some standard formats for its ToString method, it&#39;s just not good enough to use directly in a front-end. ]]></description> <link>http://localhost:4000/how-to-make-building-strings-from-dates-easy</link> <guid isPermaLink="true">http://localhost:4000/how-to-make-building-strings-from-dates-easy</guid> <pubDate>2010-12-08T14:47:00+00:00</pubDate> <content:encoded><![CDATA[<p>While the DateTime object might already have quite some standard formats for its ToString method, it&#39;s just not good enough to use directly in a front-end.</p> <p>In some applications, outputting dates can become quite a recurring job. Because of this, I decided to write a little helper class. This helper can easily be extended later by overloading the Print method to support other objects than just DateTime.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helpers.PrintHelper</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">PrintHelper</span>
+    <span class="p">{</span>
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Prints the specified date time.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;dateTime&quot;&gt;The date time.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">String</span> <span class="nf">Print</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">dateTime</span><span class="p">.</span><span class="n">ToString</span>
+                <span class="p">(</span>
+                    <span class="s">&quot;dddd, &#39;&quot;</span> <span class="p">+</span>
+                    <span class="n">AddOrdinal</span><span class="p">(</span><span class="n">dateTime</span><span class="p">.</span><span class="n">Day</span><span class="p">)</span> <span class="p">+</span>
+                    <span class="s">&quot; of&#39; MMMM yyyy &#39;at&#39; HH:mm:ss&quot;</span>
+                <span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Adds the ordinal.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;day&quot;&gt;The day.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">AddOrdinal</span><span class="p">(</span><span class="kt">int</span> <span class="n">day</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">switch</span> <span class="p">(</span><span class="n">day</span> <span class="p">%</span> <span class="m">100</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">case</span> <span class="m">11</span><span class="p">:</span>
+                <span class="k">case</span> <span class="m">12</span><span class="p">:</span>
+                <span class="k">case</span> <span class="m">13</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;th&quot;</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">switch</span> <span class="p">(</span><span class="n">day</span> <span class="p">%</span> <span class="m">10</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">case</span> <span class="m">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;st&quot;</span><span class="p">;</span>
+                <span class="k">case</span> <span class="m">2</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;nd&quot;</span><span class="p">;</span>
+                <span class="k">case</span> <span class="m">3</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;rd&quot;</span><span class="p">;</span>
+                <span class="k">default</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;th&quot;</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>You can then use it as following:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">String</span> <span class="n">date</span> <span class="p">=</span> <span class="n">Helpers</span><span class="p">.</span><span class="n">PrintHelper</span><span class="p">.</span><span class="n">Print</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">);</span>
+</code></pre></div> <p>The variable &quot;date&quot; will then contain the datetime, formatted beautifully, including ordinals.</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">8th of December 2010 at 14:46:00
+</code></pre></div>]]></content:encoded> </item> </channel> </rss>

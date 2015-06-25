@@ -1,0 +1,307 @@
+<!DOCTYPE html> <html> <head> <meta charset="utf-8"/> <meta http-equiv="X-UA-Compatible" content="IE=edge"/> <title>Steven Thuriot.be &mdash; Thoughts, stories and ideas.</title> <meta name="description" content="Blogging about things on your new Jekyll site"/> <link rel="canonical" href="http://localhost:4000/guard-your-code-using-linq-and-reflection"> <meta name="HandheldFriendly" content="True"/> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <meta name="theme-color" content="#434a4d"> <link rel="icon" sizes="192x192" href="//cdn.thuriot.be/Avatars/Raven.jpg"> <link rel="stylesheet" type="text/css" href="//localhost:4000/assets/css/main.css"/> <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"> <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic%7CMontserrat:400,700"> </head> <body class="post-template"> <header id="orbs-bar" class="sidebar no-cover"> <nav id="site-head"> <div id="site-head-logo"> <a id="blog-logo" href="//localhost:4000"><img src="//cdn.thuriot.be/Avatars/Raven.jpg" alt="Steven Thuriot.be" title="Home"></a> </div> <div class="blog-links"> <a class="fa fa-terminal" role="presentation" href="//projects" title="Projects"></a> <a class="fa fa-github-alt" role="presentation" href="//github" title="GitHub"></a> <a class="fa fa-street-view" role="presentation" href="//cv" title="Curriculum Vitae"></a> <a class="fa fa-rss" role="presentation" href="//localhost:4000/rss" target="_blank" title="Subscribe"></a> </div> </nav> </header> <main class="content" role="main"> <article class="post"> <header class="post-header"> <h1 class="post-title">Guard your code using LINQ and Reflection</h1> <section class="post-meta"> <time class="post-date" datetime="2010-12-23">23 December 2010</time> on <a href="//localhost:4000/tag/c/">C#</a>, <a href="//localhost:4000/tag/guard/">Guard</a>, <a href="//localhost:4000/tag/linq/">Linq</a>, <a href="//localhost:4000/tag/reflection/">Reflection</a> </section> </header> <section class="post-content"> <p>Time to add another class to our Helpers.</p> <p>Defensive programming is very important. Checking that every parameter is correct before working with them is simply a must. The code for doing something like this quickly becomes very repetitive. Writing a Guard class is the perfect way to keep everything in check and avoid duplicate code.</p> <p>I decided to even take it a step further and use reflection to get the name of the method and the parameters where things are starting to go wrong and add them to the exception&#39;s message as extra information. The checks themselves are done using LINQ.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Globalization</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Reflection</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Text</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Helpers.Extensions</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helper to make sure the passed parameters are correct.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">Guard</span>
+    <span class="p">{</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether the typeToAssign can be assigned to the targetType</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;typeToAssign&quot;&gt;The type to assign.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;targetType&quot;&gt;Type of the target.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;The types can&#39;t be assigned.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">CanBeAssigned</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToAssign</span><span class="p">,</span> <span class="n">Type</span> <span class="n">targetType</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">typeToAssign</span><span class="p">.</span><span class="n">CanBeAssignedTo</span><span class="p">(</span><span class="n">targetType</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="n">String</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">CultureInfo</span><span class="p">.</span><span class="n">CurrentCulture</span><span class="p">,</span> <span class="n">targetType</span><span class="p">.</span><span class="n">IsInterface</span> <span class="p">?</span>
+                    <span class="s">&quot;Type {0} can not be assigned to {1}: interface is not implemented.&quot;</span> <span class="p">:</span>
+                    <span class="s">&quot;Type {0} can not be assigned to {1}.&quot;</span><span class="p">,</span> <span class="n">typeToAssign</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">targetType</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the guids to ensure they are not empty.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the guids are empty.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">GuidNotEmpty</span><span class="p">(</span><span class="k">params</span> <span class="n">Guid</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="n">t</span> <span class="p">==</span> <span class="n">Guid</span><span class="p">.</span><span class="n">Empty</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Some guids are empty: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the dates to ensure they are in the future.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the past.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">InTheFuture</span><span class="p">(</span><span class="k">params</span> <span class="n">DateTime</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="p">!</span><span class="n">t</span><span class="p">.</span><span class="n">InTheFuture</span><span class="p">()</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Not all passed dates are in the past: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the dates to ensure they are in the past.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the future.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">InThePast</span><span class="p">(</span><span class="k">params</span> <span class="n">DateTime</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="p">!</span><span class="n">t</span><span class="p">.</span><span class="n">InThePast</span><span class="p">()</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Not all passed dates are in the past: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the arguments to ensure they aren&#39;t null.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">NotNull</span><span class="p">(</span><span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span><span class="p">;</span>
+
+            <span class="k">try</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                        <span class="k">where</span> <span class="n">t</span> <span class="p">==</span> <span class="k">null</span>
+                                           <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="p">}</span>
+            <span class="k">catch</span> <span class="p">(</span><span class="n">ArgumentNullException</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;&lt;NULL&gt; has been passed: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the arguments to ensure they aren&#39;t null, empty or whitespace.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null, empty or whitespace.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">NotNullOrWhiteSpace</span><span class="p">(</span><span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span><span class="p">;</span>
+
+            <span class="k">try</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                   <span class="k">where</span> <span class="n">t</span><span class="p">.</span><span class="n">IsNullOrWhiteSpace</span><span class="p">()</span>
+                                   <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="p">}</span>
+            <span class="k">catch</span> <span class="p">(</span><span class="n">ArgumentNullException</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;&lt;NULL&gt;, empty or whitespace has been passed: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks if the start datetime is before the end datetime.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;start&quot;&gt;The start datetime.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;end&quot;&gt;The end datetime.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;The start datetime is after or equal to end datetime.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">StartBeforeEnd</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">start</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">end</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">start</span><span class="p">.</span><span class="n">IsBefore</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;The start datetime is after or equal to end datetime: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="k">new</span> <span class="kt">object</span><span class="p">[]</span> <span class="p">{</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="p">});</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Gets the calling method.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="n">MethodBase</span> <span class="nf">GetCallingMethod</span><span class="p">()</span>
+        <span class="p">{</span>
+            <span class="n">MethodBase</span> <span class="n">result</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+            <span class="kt">var</span> <span class="n">currentStackTrace</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StackTrace</span><span class="p">(</span><span class="m">2</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+
+            <span class="kt">int</span> <span class="n">totalFrameCount</span> <span class="p">=</span> <span class="n">currentStackTrace</span><span class="p">.</span><span class="n">FrameCount</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">totalFrameCount</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">result</span> <span class="p">=</span> <span class="n">currentStackTrace</span><span class="p">.</span><span class="n">GetFrame</span><span class="p">(</span><span class="m">0</span><span class="p">).</span><span class="n">GetMethod</span><span class="p">();</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Creates the message.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;methodBase&quot;&gt;The method base.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">CreateMethodMessage</span><span class="p">(</span><span class="n">MethodBase</span> <span class="n">methodBase</span><span class="p">,</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">builder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">();</span>
+            <span class="kt">var</span> <span class="n">prefix</span> <span class="p">=</span> <span class="n">String</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">CultureInfo</span><span class="p">.</span><span class="n">CurrentCulture</span><span class="p">,</span> <span class="s">&quot;Class: {0} - Method: {1} - Args: &quot;</span><span class="p">,</span>
+                <span class="p">!</span><span class="n">methodBase</span><span class="p">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="p">?</span>
+                <span class="n">methodBase</span><span class="p">.</span><span class="n">DeclaringType</span><span class="p">.</span><span class="n">FullName</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="p">!</span><span class="n">methodBase</span><span class="p">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="p">?</span> <span class="n">methodBase</span><span class="p">.</span><span class="n">Name</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+
+            <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">prefix</span><span class="p">);</span>
+
+            <span class="kt">int</span> <span class="n">paramLength</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+            <span class="kt">bool</span> <span class="n">printArgumentNames</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+            <span class="n">ParameterInfo</span><span class="p">[]</span> <span class="n">methodParameters</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">arguments</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">paramLength</span> <span class="p">=</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">methodBase</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">methodParameters</span> <span class="p">=</span> <span class="n">methodBase</span><span class="p">.</span><span class="n">GetParameters</span><span class="p">();</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">methodParameters</span><span class="p">.</span><span class="n">Length</span> <span class="p">==</span> <span class="n">paramLength</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="n">printArgumentNames</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">arguments</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">())</span>
+            <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span><span class="p">&lt;</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
+                <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">((</span><span class="n">printArgumentNames</span><span class="p">))</span>
+                    <span class="p">{</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">methodParameters</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">Name</span><span class="p">);</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot; = &quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;[&quot;</span><span class="p">);</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">!=</span> <span class="k">null</span> <span class="p">?</span> <span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ToString</span><span class="p">()</span> <span class="p">:</span> <span class="s">&quot;NULL&quot;</span><span class="p">);</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;]&quot;</span><span class="p">);</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="p">!=</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span>
+                    <span class="p">{</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;No arguments&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="n">builder</span><span class="p">.</span><span class="n">ToString</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The code is very easy to use. Here are some sample methods:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">NullMethod</span><span class="p">(</span><span class="kt">object</span> <span class="n">object1</span><span class="p">,</span> <span class="kt">object</span> <span class="n">object2</span><span class="p">,</span> <span class="kt">object</span> <span class="n">object3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNull</span><span class="p">(</span><span class="n">object1</span><span class="p">,</span> <span class="n">object2</span><span class="p">,</span> <span class="n">object3</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">StringsMethod</span><span class="p">(</span><span class="n">String</span> <span class="n">firstName</span><span class="p">,</span> <span class="n">String</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">String</span> <span class="n">residence</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNullOrWhiteSpace</span><span class="p">(</span><span class="n">firstName</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">residence</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">GuidMethod</span><span class="p">(</span><span class="kt">string</span> <span class="n">firstGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">secondGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">thirdGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">fourthGuid</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">ParsableToGuid</span><span class="p">(</span><span class="n">firstGuid</span><span class="p">,</span> <span class="n">secondGuid</span><span class="p">,</span> <span class="n">thirdGuid</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">DateMethod</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">DateInThePast</span><span class="p">(</span><span class="n">dateTime</span><span class="p">,</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">dateTime_3</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+</code></pre></div> <p>Because of the <em>params</em> keyword in the methods of the Guard class, it is possible to pass as much parameters to the method as needed.</p> <p>Obviously, it&#39;s also possible to use multiple checks in one method.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">CombinedMethod</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime_1</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">String</span> <span class="n">string_1</span><span class="p">,</span> <span class="n">String</span> <span class="n">string_2</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">DateInThePast</span><span class="p">(</span><span class="n">dateTime_1</span><span class="p">,</span> <span class="n">dateTime_2</span><span class="p">);</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNullOrWhiteSpace</span><span class="p">(</span><span class="n">string_1</span><span class="p">,</span> <span class="n">string_2</span><span class="p">);</span>
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+</code></pre></div> <p>As for the output, running the following <em>Run</em> method (I am aware of the awkward and rather bad naming, it&#39;s merely to make it obvious how the output will be generated) would throw an exception</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">testMethod</span><span class="p">(</span><span class="n">StringBuilder</span> <span class="n">stringBuilder1</span><span class="p">,</span> <span class="n">StringBuilder</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">StringBuilder</span> <span class="n">object3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNull</span><span class="p">(</span><span class="n">stringBuilder1</span><span class="p">,</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">object3</span><span class="p">);</span>
+
+    <span class="c1">//logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">StringBuilder</span> <span class="n">builder1</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="n">StringBuilder</span> <span class="n">builder2</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+    <span class="n">StringBuilder</span> <span class="n">builder3</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">(</span><span class="s">&quot;, world!&quot;</span><span class="p">);</span>
+
+    <span class="n">testMethod</span><span class="p">(</span><span class="n">builder1</span><span class="p">,</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">builder3</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div> <p>with this message. I&#39;ve split it into several lines for readability. The actual message is in one line:</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;NULL&gt;</span> has been passed: Class: Thuriot.Tests.GuardTest - Method: testMethod -
+Args: stringBuilder1 = [NULL], builder2 = [Hello], object3 = [, world!]
+</code></pre></div> </section> <footer class="post-footer with-cover" style="background-image: url(//cdn.thuriot.be/Covers/db0b47_5415753.jpg)"> <figure class="author-image"> <a class="img" href="//localhost:4000/author/steven" style="background-image: url(//cdn.thuriot.be/Avatars/2014-07-06.jpg)"> <span class="hidden">Steven Thuriot's Picture</span></a> </figure> <section class="author"> <h4><a href="//localhost:4000/author/steven">Steven Thuriot</a></h4> <p>Developer, tinkerer, lifetime student, full time nerd and somewhat of an otaku. Graduated applied computer science followed by a career as a consultant. Likes to complain about traffic.</p> <div class="author-meta"> <span class="author-location fa fa-map-marker">Belgium</span> </div> </section> </footer> </article> </main> <footer class="site-footer clearfix wide"> <section class="copyright"><a href="//localhost:4000">Steven Thuriot.be</a> &copy; 2015</section> </footer> <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script> <script type="text/javascript" src="//localhost:4000/assets/js/jquery.fitvids.js"></script> </body> </html>

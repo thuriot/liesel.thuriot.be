@@ -1,0 +1,63 @@
+<!DOCTYPE html> <html> <head> <meta charset="utf-8"/> <meta http-equiv="X-UA-Compatible" content="IE=edge"/> <title>Steven Thuriot.be &mdash; Thoughts, stories and ideas.</title> <meta name="description" content="Blogging about things on your new Jekyll site"/> <link rel="canonical" href="http://localhost:4000/how-to-check-if-periods-overlap-andor-contain-another-period"> <meta name="HandheldFriendly" content="True"/> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <meta name="theme-color" content="#434a4d"> <link rel="icon" sizes="192x192" href="//cdn.thuriot.be/Avatars/Raven.jpg"> <link rel="stylesheet" type="text/css" href="//localhost:4000/assets/css/main.css"/> <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"> <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic%7CMontserrat:400,700"> </head> <body class="post-template"> <header id="orbs-bar" class="sidebar no-cover"> <nav id="site-head"> <div id="site-head-logo"> <a id="blog-logo" href="//localhost:4000"><img src="//cdn.thuriot.be/Avatars/Raven.jpg" alt="Steven Thuriot.be" title="Home"></a> </div> <div class="blog-links"> <a class="fa fa-terminal" role="presentation" href="//projects" title="Projects"></a> <a class="fa fa-github-alt" role="presentation" href="//github" title="GitHub"></a> <a class="fa fa-street-view" role="presentation" href="//cv" title="Curriculum Vitae"></a> <a class="fa fa-rss" role="presentation" href="//localhost:4000/rss" target="_blank" title="Subscribe"></a> </div> </nav> </header> <main class="content" role="main"> <article class="post"> <header class="post-header"> <h1 class="post-title">How to check if periods overlap and/or contain another period?</h1> <section class="post-meta"> <time class="post-date" datetime="2010-12-09">09 December 2010</time> on <a href="//localhost:4000/tag/c/">C#</a>, <a href="//localhost:4000/tag/datetime/">Datetime</a>, <a href="//localhost:4000/tag/helper/">Helper</a> </section> </header> <section class="post-content"> <p>Checking for overlap can be quite tricky. It&#39;s not hard at all to make the whole process far too complicated, resulting in a lot of overhead. Because of this, I decided to think about the easiest way to check for this and expand my helper class from the previous post.</p> <p>Imagine having a class called <code>Period</code>. This class contains a start and end date.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">Period</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Gets or sets the start date.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="c1">///&lt;value&gt;The start date.&lt;/value&gt;</span>
+    <span class="k">public</span> <span class="n">DateTime</span> <span class="n">Start</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Gets or sets the end date.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="c1">///&lt;value&gt;The end date.&lt;/value&gt;</span>
+    <span class="k">public</span> <span class="n">DateTime</span> <span class="n">End</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The helper class accepts two periods. It is possible to check if the periods overlap or if one period completely contains the other.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helpers.OverlapHelper</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">OverlapHelper</span>
+    <span class="p">{</span>
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether the specified periods overlap.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;</span>
+        <span class="c1">///     &lt;c&gt;true&lt;/c&gt; if the specified periods overlap; otherwise,&lt;c&gt;false&lt;/c&gt;.</span>
+        <span class="c1">///&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">Boolean</span> <span class="nf">HasOverlap</span><span class="p">(</span><span class="n">Period</span> <span class="n">period1</span><span class="p">,</span> <span class="n">Period</span> <span class="n">period2</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">period2</span><span class="p">.</span><span class="n">Start</span><span class="p">&lt;</span> <span class="n">period1</span><span class="p">.</span><span class="n">End</span> <span class="p">&amp;</span><span class="n">amp</span><span class="p">;&amp;</span><span class="n">amp</span><span class="p">;</span> <span class="n">period2</span><span class="p">.</span><span class="n">End</span> <span class="p">&gt;</span> <span class="n">period1</span><span class="p">.</span><span class="n">Start</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether period1 contains period2.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;</span>
+        <span class="c1">///     &lt;c&gt;true&lt;/c&gt; if period1 contains period2; otherwise,&lt;c&gt;false&lt;/c&gt;.</span>
+        <span class="c1">///&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">Boolean</span> <span class="nf">Contains</span><span class="p">(</span><span class="n">Period</span> <span class="n">period1</span><span class="p">,</span> <span class="n">Period</span> <span class="n">period2</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">period2</span><span class="p">.</span><span class="n">Start</span> <span class="p">&gt;=</span> <span class="n">period1</span><span class="p">.</span><span class="n">Start</span> <span class="p">&amp;</span><span class="n">amp</span><span class="p">;&amp;</span><span class="n">amp</span><span class="p">;</span> <span class="n">period2</span><span class="p">.</span><span class="n">End</span><span class="p">&lt;=</span> <span class="n">period1</span><span class="p">.</span><span class="n">End</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>And of course, some test cases. Period 1 starts March 23rd and stops March 28th.</p> <p><strong>Testcases for Overlap</strong></p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">18/3 – 25/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+25/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+24/3 – 27/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 22/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+29/3 – 30/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+</code></pre></div> <p><strong>Testcases for Contains</strong></p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">18/3 – 25/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+18/3 – 29/3 –&gt; false <span class="err">&amp;&amp;</span> false –&gt; false
+25/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+24/3 – 27/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 22/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+29/3 – 30/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+</code></pre></div> </section> <footer class="post-footer with-cover" style="background-image: url(//cdn.thuriot.be/Covers/db0b47_5415753.jpg)"> <figure class="author-image"> <a class="img" href="//localhost:4000/author/steven" style="background-image: url(//cdn.thuriot.be/Avatars/2014-07-06.jpg)"> <span class="hidden">Steven Thuriot's Picture</span></a> </figure> <section class="author"> <h4><a href="//localhost:4000/author/steven">Steven Thuriot</a></h4> <p>Developer, tinkerer, lifetime student, full time nerd and somewhat of an otaku. Graduated applied computer science followed by a career as a consultant. Likes to complain about traffic.</p> <div class="author-meta"> <span class="author-location fa fa-map-marker">Belgium</span> </div> </section> </footer> </article> </main> <footer class="site-footer clearfix wide"> <section class="copyright"><a href="//localhost:4000">Steven Thuriot.be</a> &copy; 2015</section> </footer> <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script> <script type="text/javascript" src="//localhost:4000/assets/js/jquery.fitvids.js"></script> </body> </html>
