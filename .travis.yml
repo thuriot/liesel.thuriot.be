@@ -1,12 +1,15 @@
 language: ruby
 branches:
   only:
-  - master # only take into account 'master' branch
+  - master
 rvm:
-  - 2.1
+- 2.1
 script:
-  - bundle exec jekyll build
-  - bundle exec htmlproof ./_site --only-4xx --check-favicon --check-html
+- bundle exec jekyll build
+- bundle exec htmlproof ./_site --only-4xx --check-favicon --check-html
+after_success:
+  - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && bash deploy.sh
 env:
   global:
-    - NOKOGIRI_USE_SYSTEM_LIBRARIES=true # speeds up installation of html-proofer
+  - NOKOGIRI_USE_SYSTEM_LIBRARIES=true
+  - secure: cwE0Whwte/BmvODl1C+Esd9VBQesJWQ/O2v860Nj/mYAQfSUTO9qY2vWbHr2FqKiTV+6wt6Zi/y2hmcEsSpuHEO74h9hmBKJJSxQ7wM8WB6FP9b6r8ig7MY4YMRiUHx87OfESAqT1rgyn/U/p/mnDVbTAn6lhz6EhzXl9syhyEzhfWNeuVWab1wVKru/L5ZBBWfJz4u+BWyolcriK0hi0JM2QQpt/TeWIEWSJsPPqCGEW4uDqWIg9wgBaRTy9j72indve50/ZxEbiFi6Rfa7MPDqNhieFPdwWXEzR+8Aacfm+BkReIi4+DCeZJIbp1lVWvWu/Yuzbc657moMWQgBDUgCLEqaLkxFEpbdg6e0G1nazIYhuhBvPXGhlcbkEv8MjCBNgrpDrcO9EAlsNgX+6v5DDoqur1tsG/+LpmqgwHz3iSHbpT6f1H70wAy9o2JN4KB4KSDAoONbkt8CRiHXtaUoTJrW3xRJp9u1w6VayLaGmYVn3xxZ72/+FP93BNLM1WSgkvGjV9ehinzNOcaQT6F4gmM1N/DVRBmAN23GvvBU+x1gp/V8Gxe9edW9YXxzK10mF2uuoa+WvhkkQvgw0N/JjxR+DQvBh3VjIMKWSQHBTLsGCjQHzyEJ57Y0ph/z+lkQ+6UFgioJSPirr5ktc+wqxOfubn7BQxFngcaVcSQ=
