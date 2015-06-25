@@ -12,6 +12,8 @@ git remote add upstream "https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git"
 
 git fetch upstream && git reset upstream/gh-pages
 
+touch .nojekyll
+
 # echo "steven.thuriot.be" > CNAME
 
 
