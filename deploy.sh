@@ -21,7 +21,7 @@ touch .
 git add -A .
 
 
-git commit -m "TravisCI: Rebuild pages at ${rev} - Build #$TRAVIS_BUILD_NUMBER"
+git commit -m "TravisCI: Rebuild pages at ${rev}
 
 
 git push -q upstream HEAD:gh-pages
