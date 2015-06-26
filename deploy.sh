@@ -14,7 +14,7 @@ git fetch upstream && git reset upstream/gh-pages
 
 touch .nojekyll
 
-# echo "steven.thuriot.be" > CNAME
+echo "steven.thuriot.be" > CNAME
 
 
 touch .
