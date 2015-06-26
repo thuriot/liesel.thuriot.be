@@ -2,7 +2,7 @@
 layout: post
 title: "WPF: A Model First Approach"
 date: 2014-12-03 19:05:00
-cover: http://cdn.thuriot.be/Covers/wpf.jpg
+cover: //cdn.thuriot.be/images/Covers/wpf.jpg
 categories: [Model First, .NET, WPF]
 ---
 

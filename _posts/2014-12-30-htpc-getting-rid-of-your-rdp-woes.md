@@ -2,7 +2,7 @@
 layout: post
 title: 'HTPC: Getting rid of your RDP Woes'
 date: 2014-12-30 15:02:00
-cover: http://cdn.thuriot.be/Covers/NESRemote.png
+cover: //cdn.thuriot.be/images/Covers/NESRemote.png
 categories: [RDP, HTPC, Without Lock, Windows, Disconnect]
 ---
 
@@ -27,17 +27,17 @@ Taskschd.msc
 
 After the window opens, right-click the `Task Scheduler Library`, create a new task and name it `Disconnect`.
 
-![Create New Task - General Tab](http://cdn.thuriot.be/HTPC-RDP/1.New.jpg)
+![Create New Task - General Tab](//cdn.thuriot.be/images/HTPC-RDP/1.New.jpg)
 
 Don't forget to tick `Run with highest privileges`. This will allow the task to run with administrative rights without triggering [UAC](https://en.wikipedia.org/wiki/User_Account_Control). I like having UAC on, but it gets annoying fast for tasks like these. Without administrative rights, it will not work. 
 
 After doing so, go to the actions tab.
 
-![Actions Tab](http://cdn.thuriot.be/HTPC-RDP/2.Actions.jpg)
+![Actions Tab](//cdn.thuriot.be/images/HTPC-RDP/2.Actions.jpg)
 
 Click `New` and create a new action. The following window opens.
 
-![Add Action](http://cdn.thuriot.be/HTPC-RDP/3.Action.jpg)
+![Add Action](//cdn.thuriot.be/images/HTPC-RDP/3.Action.jpg)
 
 The command we will be executing is the following:
 
@@ -49,7 +49,7 @@ Enter it into the window as shown in the screenshot.
 
 Lastly, go to the settings tab. Make sure `Allow task to be run on demand` is ticked.
 
-![Settings Tab](http://cdn.thuriot.be/HTPC-RDP/4.Settings.jpg)
+![Settings Tab](//cdn.thuriot.be/images/HTPC-RDP/4.Settings.jpg)
 
 # A word of explanation: What exactly is happening?
 

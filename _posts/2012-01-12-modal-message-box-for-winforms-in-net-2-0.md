@@ -181,7 +181,7 @@ public class ModalMessageBox : Form
 The result looks like this:
 
 Before the pop-up
-[![Input before the message pops up](//cdn.thuriot.be/ModalMessageBox/Input1.png)](//cdn.thuriot.be/ModalMessageBox/Input1.png)
+[![Input before the message pops up](//cdn.thuriot.be/images/ModalMessageBox/Input1.png)](//cdn.thuriot.be/images/ModalMessageBox/Input1.png)
 
 After the pop-up
-[![Input after the message pops up](//cdn.thuriot.be/ModalMessageBox/Input2.png)](//cdn.thuriot.be/ModalMessageBox/Input2.png)
+[![Input after the message pops up](//cdn.thuriot.be/images/ModalMessageBox/Input2.png)](//cdn.thuriot.be/images/ModalMessageBox/Input2.png)

@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Curriculum Vitae
-cover: http://cdn.thuriot.be/Covers/Resume.jpg
+cover: //cdn.thuriot.be/images/Covers/Resume.jpg
 ---
 
 #Steven Thuriot

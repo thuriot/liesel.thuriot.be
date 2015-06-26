@@ -27,8 +27,8 @@ url: steven.thuriot.be
 scheme: https #mainly used for xml feeds and canonical links
 
 
-logo: //cdn.thuriot.be/Avatars/Raven.jpg
-cover: //cdn.thuriot.be/Wall2.png
+logo: //cdn.thuriot.be/images/Avatars/Raven.jpg
+cover: //cdn.thuriot.be/images/Wall2.png
 disqus: thuriot
 author: steven
 language: English

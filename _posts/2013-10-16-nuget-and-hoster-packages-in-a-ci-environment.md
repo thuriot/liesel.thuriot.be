@@ -16,13 +16,13 @@ NuGet has come a long way since it was first introduced and has gained a lot of 
 Building the packages themselves used to be a small pain to set up, but even that is implemented into NuGet that it's just a parameter away. By enabling the NuGet package restore feature, a few files are added to the solution.
 
 
-[![Package Restore](//cdn.thuriot.be/NuGetCI/packagerestore.png)](//cdn.thuriot.be/NuGetCI/packagerestore.png)
+[![Package Restore](//cdn.thuriot.be/images/NuGetCI/packagerestore.png)](//cdn.thuriot.be/images/NuGetCI/packagerestore.png)
 
 
 One of these files is an msbuild targets file. It generally contains data that (as most of you know) allows the user to restore packages as a pre-build action. This way, the actual packages don't have to be checked into version control.
 
 
-[![Targets](//cdn.thuriot.be/NuGetCI/targets.png)](//cdn.thuriot.be/NuGetCI/targets.png)
+[![Targets](//cdn.thuriot.be/images/NuGetCI/targets.png)](//cdn.thuriot.be/images/NuGetCI/targets.png)
 
 
 *As of [version 2.7+](https://docs.nuget.org/docs/reference/package-restore#MSBuild-Integrated_Package_Restore) of NuGet, this approach is no longer needed if you just want to restore the packages. The option is still available, though, in case you require more specific settings. For more information about the automatic package restore in v2.7+ and how to possibly migrate your solution, you can visit the nuget docs [here](http://docs.nuget.org/docs/workflows/migrating-to-automatic-package-restore).*

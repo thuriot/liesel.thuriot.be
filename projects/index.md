@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Projects
-cover: http://cdn.thuriot.be/Covers/keyboard.jpg
+cover: //cdn.thuriot.be/images/Covers/keyboard.jpg
 ---
 
 * [Administration panel running behind my previous site](/thuriot-be/)

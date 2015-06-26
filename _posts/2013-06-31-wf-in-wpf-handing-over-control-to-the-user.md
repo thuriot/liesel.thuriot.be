@@ -7,7 +7,7 @@ categories: [C#, WPF, .NET, UI, WF]
 
 ...because delivering an application set in stone doesn't always cut it.
 
-[![Set in Stone](//cdn.thuriot.be/WFinWPF/Stone.jpg)](//cdn.thuriot.be/WFinWPF/Stone.jpg)
+[![Set in Stone](//cdn.thuriot.be/images/WFinWPF/Stone.jpg)](//cdn.thuriot.be/images/WFinWPF/Stone.jpg)
 
 #What is which and which is what??
 Before we begin, it is important that we understand all of the concepts used. So we will go over them first.
@@ -19,7 +19,7 @@ A workflow is a series of distinct programming steps or phases. A step in workfl
 
 These activities can be used as building blocks to visually assemble a workflow.
 
-[![.NET Framework Chart](//cdn.thuriot.be/WFinWPF/Chart.jpg)](//cdn.thuriot.be/WFinWPF/Chart.jpg)
+[![.NET Framework Chart](//cdn.thuriot.be/images/WFinWPF/Chart.jpg)](//cdn.thuriot.be/images/WFinWPF/Chart.jpg)
 
 ##WPF: Windows Presentation Foundation
 The Presentation Foundation is a graphical subsystem for rendering user interfaces in Windows-based applications. WPF runs on top of DirectX.
@@ -35,7 +35,7 @@ But what happens when the requirements can change on a daily basis? Or when they
 
 This can be solved by handing over the control to the end user. By handing over simple building blocks, rather than lines of code written in stone, we can enable the user to customize the application to their needs at that particular time in an easy and playful manner.
 
-[![Lego Building Blocks](//cdn.thuriot.be/WFinWPF/Lego.jpg)](//cdn.thuriot.be/WFinWPF/Lego.jpg)
+[![Lego Building Blocks](//cdn.thuriot.be/images/WFinWPF/Lego.jpg)](//cdn.thuriot.be/images/WFinWPF/Lego.jpg)
 
 By teaching the end user how to play with these blocks (or rather, Workflow Activities), (s)he can constantly keep shaping the application to their needs.
 
@@ -150,4 +150,4 @@ using (var stream = new MemoryStream(bytes))
 
 
 ###Result:
-[![WPF View Result](//cdn.thuriot.be/WFinWPF/Result.png)](//cdn.thuriot.be/WFinWPF/Result.png)
+[![WPF View Result](//cdn.thuriot.be/images/WFinWPF/Result.png)](//cdn.thuriot.be/images/WFinWPF/Result.png)
