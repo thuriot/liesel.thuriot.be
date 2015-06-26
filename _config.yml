@@ -24,7 +24,7 @@ name: Steven Thuriot.be
 description: Thoughts, stories and ideas.
 meta_description: Blogging about things on your new Jekyll site
 url: steven.thuriot.be
-scheme: http #mainly used for xml feeds
+scheme: https #mainly used for xml feeds and canonical links
 
 
 logo: //cdn.thuriot.be/Avatars/Raven.jpg
