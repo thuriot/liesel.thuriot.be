@@ -23,8 +23,7 @@ gems:
 name: Steven Thuriot.be
 description: Thoughts, stories and ideas.
 meta_description: Blogging about things on your new Jekyll site
-url: steven.thuriot.be
-scheme: https #mainly used for xml feeds and canonical links
+url: https://steven.thuriot.be
 
 
 logo: //cdn.thuriot.be/images/Avatars/Raven.jpg
