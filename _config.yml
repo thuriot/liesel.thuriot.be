@@ -30,9 +30,13 @@ url: http://steven.thuriot.be
 
 logo: //cdn.thuriot.be/images/Avatars/Raven.jpg
 cover: //cdn.thuriot.be/images/Wall2.png
+
 disqus: thuriot
+
 author: steven
 language: English
+
+useScheme: false
 
 
 #Colors
