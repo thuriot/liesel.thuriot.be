@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>//steven.thuriot.be/automating-your-wake-up-alarm-using-tasker</loc>
+    <lastmod>2015-07-12T09:22:00+00:00</lastmod>
+  </url>
+  <url>
     <loc>//steven.thuriot.be/htpc-getting-rid-of-your-rdp-woes</loc>
     <lastmod>2014-12-30T15:02:00+00:00</lastmod>
   </url>
@@ -226,5 +230,14 @@
   </url>
   <url>
     <loc>//steven.thuriot.be/tag/disconnect/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/tasker/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/automation/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/android/</loc>
   </url>
 </urlset>
