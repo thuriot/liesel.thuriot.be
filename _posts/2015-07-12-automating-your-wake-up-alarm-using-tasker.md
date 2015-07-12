@@ -12,7 +12,7 @@ The choice seems obvious, just pick the first option! However, this can quickly 
 
 Since this has happened to me a few times, I decided to tinker something together using [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm&hl=en). This is an amazing Android app that allows you to automate anything, from Settings to SMS.
 
-I created a `Task` that sets the alarm on weekdays and let the task trigger at 5 minutes after midnight. Inside the task, I used a variable for hours and minutes. This way I can easily adjust them, if needed, in Taskers `var` window.
+I created a `Task` that sets the alarm on weekdays and let the task trigger at 5 minutes after midnight. Inside the task, I used a variable for hours and minutes. This way I can easily adjust them, if needed, in Taskers `var` window. They are named `%AlarmHour` and `%AlarmMinute`. You could also create tasks to set these variables for you, depending on other conditions.
 
 At this point, we've built an alarm that mimics the behaviour of option #1, the automatic alarm. So what about our vacation days? To solve this issue, I added an extra condition to the task to check my calendar. I have the tendency to add an all day event in my calendar named `Vacation` when I have a day off. So having it check if there is a `Vacation` task in my calendar is exactly what I needed. 
 
