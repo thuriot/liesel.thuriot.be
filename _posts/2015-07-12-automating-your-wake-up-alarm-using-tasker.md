@@ -2,7 +2,7 @@
 layout: post
 title: Automating your wake up alarm using Tasker
 date: 2015-07-12 09:22:00
-cover: //cdn.thuriot.be/images/Covers/NESRemote.png
+cover: //cdn.thuriot.be/images/Covers/Old-clock.jpg
 categories: [Tasker, Automation, Android]
 ---
 
