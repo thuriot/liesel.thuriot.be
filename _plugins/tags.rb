@@ -89,8 +89,41 @@ module Jekyll
       end
     end
   end
+
+
+  class TranslateTag < Liquid::Tag
+    @markups = nil
+    @sentence = nil
+
+    def initialize(tag_name, text, tokens)
+      first,*rest = text.split(/►/) #ascii 16
+        
+      @sentence = first.strip
+      @markups = rest.map { |tag| tag.strip }
+      super
+    end
+
+    def render(context)
+      site = context.registers[:site]
+      config = site.config
+      language = config['language'].downcase        
+      translationData = site.data['language']
+      translate = translationData[language]
+                
+      sentence = translate[Liquid::Template.parse(@sentence).render(context).strip]
+    
+      if sentence.nil?
+          raise "Error processing input, unknown sentence '#{@sentence}'..."
+      end
+        
+      rendered = @markups.map { |markup| Liquid::Template.parse(markup).render(context).strip }
+      
+      sentence % rendered
+    end
+  end  
 end
 
 Liquid::Template.register_tag('relative', Jekyll::RelativeUrlTag)
 Liquid::Template.register_tag('absolute', Jekyll::AbsoluteUrlTag)
 Liquid::Template.register_tag('resolve_category', Jekyll::CategorySlugTag)
+Liquid::Template.register_tag('translate', Jekyll::TranslateTag)
