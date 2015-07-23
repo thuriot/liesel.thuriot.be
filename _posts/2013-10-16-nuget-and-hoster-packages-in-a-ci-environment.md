@@ -5,7 +5,6 @@ date: 2013-10-16 18:32:00
 categories: [CI, Build, msbuild, NuGet, nupkg, nuspec, targets]
 ---
 
-#What is NuGet?
 [NuGet](http://www.nuget.org/) is the package manager for the Microsoft development platform including .NET. The NuGet client tools provide the ability to produce and consume packages. 
 
 The NuGet Gallery is the central package repository used by all package authors and consumers.
