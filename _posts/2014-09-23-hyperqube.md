@@ -1,6 +1,7 @@
 ---
 layout: post
 title: HyperQube
+cover: //cdn.thuriot.be/images/Covers/cube.jpg
 date: 2014-09-23 17:22:00
 categories: [Projects]
 ---
