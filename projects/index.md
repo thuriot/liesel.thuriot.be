@@ -71,6 +71,8 @@ cover: //cdn.thuriot.be/images/Covers/keyboard.jpg
     * Based on `node-fs-walker`.
 * [domainr](https://github.com/StevenThuriot/domainr)
 	* .NET Helper to make executing a piece of code in a separate `AppDomain` easier.
+* [uGovernor](https://github.com/StevenThuriot/uGovernor)
+	* a µTorrent cli
 
 ----------
 
