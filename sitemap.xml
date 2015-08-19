@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>//steven.thuriot.be/generic-references</loc>
+    <lastmod>2015-08-19T19:17:00+00:00</lastmod>
+  </url>
+  <url>
     <loc>//steven.thuriot.be/automating-your-wake-up-alarm-using-tasker</loc>
     <lastmod>2015-07-12T09:22:00+00:00</lastmod>
   </url>
@@ -239,5 +243,14 @@
   </url>
   <url>
     <loc>//steven.thuriot.be/tag/android/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/unsafe/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/generic/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/typereference/</loc>
   </url>
 </urlset>
