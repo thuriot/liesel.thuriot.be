@@ -6,7 +6,7 @@ cover: //cdn.thuriot.be/images/Covers/reference.jpg
 categories: [C#, unsafe, Generic, TypeReference]
 ---
 
-When writing generic classes, it's highly likely you've gotten (at least once) to the point where you've done a type-check in one of your methods. Depending on the type of your generic parameter, you've then set a certain course of action.
+When writing generic classes, it's highly likely you've gotten to the point (at least once) where you had to write a piece of type-specific code (wether due to third party or not) and you've done a type-check in one of your methods. Depending on the type of your generic parameter, you've then set a certain course of action.
 
 Code smells aside, you've probably bumped into a casting issue at this point.
 
@@ -33,9 +33,9 @@ public class ClassWithData<T>
 }
 ```
 
-Of course, this example won't even compile. The compiler won't let you cast the generic type, even though you've verified it to be correct. A cast which isn't really a cast in the first place.
+Of course, this example won't even compile. The compiler won't let you cast to the generic type, even though you've verified it to be correct and in fact, the same! A cast which isn't really a cast in the first place.
 
-Usually, we solve this by boxing the generic value first, tricking the compiler.
+Usually, we solve this by boxing the generic value first, and thus tricking the compiler.
 
 ```csharp
 public class ClassWithData<T>
@@ -58,9 +58,9 @@ public class ClassWithData<T>
 }
 ```
 
-Bam! Code compiles, code works. Job done. Or is it? Doing this will box the generic value, moving it from the stack to the heap. This process is slow and should be avoided.
+Bam! Code compiles, code works. Job done. Or is it? Not only are we tricking the compiler, we are also tricking ourselves... Doing this will box the generic value, moving it from the stack to the heap. This process is slow and should be avoided.
 
-It's a problem, given you want to keep your code this way, that is actually easily solved. We can circumvent this by using a few of C#'s undocumented keywords: `__makeref` and `__refvalue`.
+It's a problem (given you want to keep your code this way in the first place) that is actually easily solved. We can circumvent this by using a few of C#'s undocumented keywords: `__makeref` and `__refvalue`.
 
 `__makeref` will create a `TypeReference`, while `__refvalue` will cast the reference to the type you pass it. No boxing and unboxing involved!
 
@@ -91,4 +91,4 @@ I have noticed that it's rather picky with its casts, so be careful! For instanc
 
 This definitely needs to be properly unit-tested when used in your project.
 
-Enjoy!
+Enjoy, and don't forget to check back for more adventures later!
