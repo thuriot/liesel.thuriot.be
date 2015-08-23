@@ -8,7 +8,7 @@ categories: [C#, Unsafe, Password]
 
 A lot of programs use some form of passwords. These are usually kept in memory. The issue here is that a program's used memory is very easy to read out and your unsecured password will be there in plain sight.
 
-For this specific reason, the [`SecureString` (`System.Security`)](https://msdn.microsoft.com/en-us/library/system.security.securestring.aspx) class is available, which will keep your string encrypted in memory.
+For this specific reason, the [`SecureString`](https://msdn.microsoft.com/en-us/library/system.security.securestring.aspx) (`System.Security`) class is available, which will keep your string encrypted in memory.
 
 Since this class does not have an apparent constructor that receives a `string`, people tend to create an empty `SecureString`, iterate their string and call `AppendChar` for each and every iteration. Not only is this a tedious process, the .NET framework will have to unprotect the value each time and protect it again after adding the `char`. The good news, though, is that this entire process is done in unmanaged memory.
 
