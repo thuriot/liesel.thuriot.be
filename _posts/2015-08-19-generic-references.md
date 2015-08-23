@@ -71,7 +71,7 @@ public class ClassWithData<T>
 {
   T _value;
 
-  // other stuffs
+  // other stuff
 
   public byte[] GetBytes()
   {
