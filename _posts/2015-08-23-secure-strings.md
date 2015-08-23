@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Secure Strings
-date: 2015-08-17 19:17:00
+date: 2015-08-23 18:59:00
 cover: //cdn.thuriot.be/images/Covers/security.jpg
 categories: [C#, Unsafe, Password]
 ---
