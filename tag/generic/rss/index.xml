@@ -38,7 +38,7 @@
 <span class="p">{</span>
   <span class="n">T</span> <span class="n">_value</span><span class="p">;</span>
 
-  <span class="c1">// other stuffs</span>
+  <span class="c1">// other stuff</span>
 
   <span class="k">public</span> <span class="kt">byte</span><span class="p">[]</span> <span class="nf">GetBytes</span><span class="p">()</span>
   <span class="p">{</span>
