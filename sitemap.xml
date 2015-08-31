@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>//steven.thuriot.be/we-did-it</loc>
-    <lastmod>2015-08-25T12:07:00+00:00</lastmod>
+    <loc>//steven.thuriot.be/colored-console-tracelistener</loc>
+    <lastmod>2015-08-31T18:38:00+00:00</lastmod>
   </url>
   <url>
-    <loc>//steven.thuriot.be/colored-console-tracelistener</loc>
+    <loc>//steven.thuriot.be/we-did-it</loc>
     <lastmod>2015-08-25T12:07:00+00:00</lastmod>
   </url>
   <url>
@@ -272,6 +272,9 @@
     <loc>//steven.thuriot.be/tag/password/</loc>
   </url>
   <url>
+    <loc>//steven.thuriot.be/tag/github/</loc>
+  </url>
+  <url>
     <loc>//steven.thuriot.be/tag/tracelistener/</loc>
   </url>
   <url>
@@ -279,8 +282,5 @@
   </url>
   <url>
     <loc>//steven.thuriot.be/tag/console/</loc>
-  </url>
-  <url>
-    <loc>//steven.thuriot.be/tag/github/</loc>
   </url>
 </urlset>
