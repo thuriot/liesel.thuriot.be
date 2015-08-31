@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Colored Console TraceListener
-date: 2015-08-25 12:07:00
+date: 2015-08-31 18:38:00
 cover: //cdn.thuriot.be/images/Covers/ascii.png
 categories: [C#, TraceListener, Trace, Console]
 ---
