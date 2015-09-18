@@ -15,64 +15,72 @@ Doing it this way, our code is easily reusable for other kinds of logging and pr
 This can easily be done by inheriting the provided TraceListener and overriding the `ConsoleColor` before writing our events.
 
 ```csharp
+
 public class ColorConsoleTraceListener : ConsoleTraceListener
 {
-  private static readonly IReadOnlyDictionary<TraceEventType, ConsoleColor> _colors;
-  static ColorConsoleTraceListener()
-  {
-      _colors = new Dictionary<TraceEventType, ConsoleColor>
-                    {
-                        {TraceEventType.Verbose,      ConsoleColor.DarkGray},
-                        {TraceEventType.Information,  ConsoleColor.Gray},
-                        {TraceEventType.Warning,      ConsoleColor.Yellow},
-                        {TraceEventType.Error,        ConsoleColor.DarkRed},
-                        {TraceEventType.Critical,     ConsoleColor.Red},
-                        {TraceEventType.Start,        ConsoleColor.DarkCyan},
-                        {TraceEventType.Stop,         ConsoleColor.DarkGreen}
-                    };
-  }
+    static readonly IReadOnlyDictionary<TraceEventType, ConsoleColor> _colors;
+    static ColorConsoleTraceListener()
+    {
+        _colors = new Dictionary<TraceEventType, ConsoleColor>
+                {
+                    {TraceEventType.Verbose,      ConsoleColor.DarkGray},
+                    {TraceEventType.Information,  ConsoleColor.Gray},
+                    {TraceEventType.Warning,      ConsoleColor.Yellow},
+                    {TraceEventType.Error,        ConsoleColor.DarkRed},
+                    {TraceEventType.Critical,     ConsoleColor.Red},
+                    {TraceEventType.Start,        ConsoleColor.DarkCyan},
+                    {TraceEventType.Stop,         ConsoleColor.DarkGreen}
+                };
+    }
 
-  private readonly bool _prependEventType;
-  private readonly bool _prependSource;
-  public ColorConsoleTraceListener(bool prependEventType = true, bool prependSource = true)
-  {
-      _prependEventType = prependEventType;
-      _prependSource = prependSource;
-  }
+    readonly bool _prependEventType;
+    readonly bool _prependSource;
+    public ColorConsoleTraceListener(bool prependEventType = true, bool prependSource = true)
+    {
+        _prependEventType = prependEventType;
+        _prependSource = prependSource;
+    }
 
-  public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
-  {
-      Trace(source, eventType, message);
-  }
+    public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+    {
+        if (Filter != null && !Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
+            return;
 
-  public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
-  {
-      Trace(source, eventType, string.Format(CultureInfo.InvariantCulture, format, args));
-  }
+        Trace(source, eventType, message);
+    }
 
-  private void Trace(string source, TraceEventType eventType, string message)
-  {
-      ConsoleColor? previousColor;
-      ConsoleColor color;
+    public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+    {
+        if (Filter != null && !Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
+            return;
 
-      if (_colors.TryGetValue(eventType, out color))
-      {
-          previousColor = Console.ForegroundColor;
-          Console.ForegroundColor = color;
-      }
-      else
-      {
-          previousColor = null;
-      }
 
-      if (_prependSource) Write(source + " — ");
-      if (_prependEventType) Write(eventType + " — ");
-      WriteLine(message);
+        Trace(source, eventType, string.Format(CultureInfo.InvariantCulture, format, args));
+    }
 
-      if (previousColor.HasValue)
-      {
-          Console.ForegroundColor = previousColor.Value;
-      }
-  }
+    void Trace(string source, TraceEventType eventType, string message)
+    {
+        ConsoleColor? previousColor;
+        ConsoleColor color;
+
+        if (_colors.TryGetValue(eventType, out color))
+        {
+            previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+        }
+        else
+        {
+            previousColor = null;
+        }
+
+        if (_prependSource) Write(source + " — ");
+        if (_prependEventType) Write(eventType + " — ");
+        WriteLine(message);
+
+        if (previousColor.HasValue)
+        {
+            Console.ForegroundColor = previousColor.Value;
+        }
+    }
 }
 ```
