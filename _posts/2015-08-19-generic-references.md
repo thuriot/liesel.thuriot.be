@@ -2,7 +2,7 @@
 layout: post
 title: "Playing with Generic References: Hidden features of C#"
 date: 2015-08-19 19:17:00
-cover: //cdn.thuriot.be/images/Covers/reference.jpg
+cover: //cdn.thuriot.be/images/Covers/surprise.jpg
 categories: [C#, unsafe, Generic, TypeReference]
 ---
 
