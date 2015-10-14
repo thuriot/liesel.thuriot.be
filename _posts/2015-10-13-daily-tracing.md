@@ -2,7 +2,7 @@
 layout: post
 title: Daily Tracing
 date: 2015-10-14 20:06:00
-cover: //cdn.thuriot.be/images/Covers/color-paint-cans.jpg
+cover: //cdn.thuriot.be/images/Covers/library.jpg
 categories: [C#, Tracing, Logging]
 ---
 
