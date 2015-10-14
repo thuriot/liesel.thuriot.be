@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>//steven.thuriot.be/daily-tracing</loc>
+    <lastmod>2015-10-14T20:06:00+00:00</lastmod>
+  </url>
+  <url>
     <loc>//steven.thuriot.be/playing-with-sets</loc>
     <lastmod>2015-10-08T17:29:00+00:00</lastmod>
   </url>
@@ -289,5 +293,11 @@
   </url>
   <url>
     <loc>//steven.thuriot.be/tag/extensions/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/tracing/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/tag/logging/</loc>
   </url>
 </urlset>

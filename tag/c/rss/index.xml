@@ -1,4 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; C#]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://steven.thuriot.be</link> <link href="//steven.thuriot.be/tag/c/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[Playing with Sets]]></title> <description><![CDATA[The [`Distinct`](https://msdn.microsoft.com/en-us/library/vstudio/bb348436.aspx) method is one of the really useful methods in the `System.Linq` namespace. Internally, it&#39;s really simple, too. It will just iterate your collection and add them all to a [`HashSet`](https://msdn.microsoft.com/en-us/library/bb359438.aspx). The set will make sure that each item is only added once on its own. ]]></description> <link>//steven.thuriot.be/playing-with-sets</link> <guid isPermaLink="true">//steven.thuriot.be/playing-with-sets</guid> <pubDate>2015-10-08T17:29:00+00:00</pubDate> <media:content url="//cdn.thuriot.be/images/Covers/color-paint-cans.jpg" medium="image"/> <content:encoded><![CDATA[<p>The <a href="https://msdn.microsoft.com/en-us/library/vstudio/bb348436.aspx"><code>Distinct</code></a> method is one of the really useful methods in the <code>System.Linq</code> namespace. Internally, it&#39;s really simple, too. It will just iterate your collection and add them all to a <a href="https://msdn.microsoft.com/en-us/library/bb359438.aspx"><code>HashSet</code></a>. The set will make sure that each item is only added once on its own.</p> <p>Instead of adding all items and returning just the set, <code>Distinct</code> will actually create an iterator that will return the item if successfully added. While this is a good idea since the actual execution is deferred, at times it is nice to just create the set and keep working with it, instead.</p> <p>While this is simple enough as is, I created an extension method anyway.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">static</span> <span class="n">HashSet</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ToSet</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">)</span>
+<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; C#]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://steven.thuriot.be</link> <link href="//steven.thuriot.be/tag/c/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[Daily Tracing]]></title> <description><![CDATA[No doubt about it. Tracing is very important when working on a project. ]]></description> <link>//steven.thuriot.be/daily-tracing</link> <guid isPermaLink="true">//steven.thuriot.be/daily-tracing</guid> <pubDate>2015-10-14T20:06:00+00:00</pubDate> <media:content url="//cdn.thuriot.be/images/Covers/color-paint-cans.jpg" medium="image"/> <content:encoded><![CDATA[<p>No doubt about it. Tracing is very important when working on a project.</p> <p>Not only will it make tracking down bugs easier, it will also make it a lot easier to get some numbers for general usage, timings, etc.</p> <p>On a project I&#39;m currently working on, it&#39;s very interesting to have a lot of tracing. And I do mean <code>a lot</code>! The project is quite large and the logic is incredibly complex (sadly, by its very nature). Log files were growing fast, faster than we could manage. However, at any given time, we&#39;d only be interested in traces from the last three days, tops.</p> <p>I created a <code>TraceListener</code> that allows you to trace each day to an individual file. It will concatenate the date to the given file name. As soon as it notices we started a new day, it will create a new file and start writing to that one instead. At the same time, it will clean up any files older than three days, as those are not relevant to us anymore. The number of days it should keep, as well as the formatting of the file&#39;s title can easily be adjusted in code.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.IO</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Reflection</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">DailyTraceListener</span> <span class="p">:</span> <span class="n">TraceListener</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">_logLocation</span><span class="p">;</span>
+
+    <span class="k">private</span> <span class="n">StreamWriter</span> <span class="n">_writer</span><span class="p">;</span>
+    <span class="k">private</span> <span class="n">DateTime</span> <span class="n">_today</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">DailyTraceListener</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_logLocation</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="n">TextWriter</span> <span class="nf">EnsureWriter</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_today</span> <span class="p">==</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Today</span><span class="p">)</span> <span class="k">return</span> <span class="n">_writer</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">_writer</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+
+        <span class="n">_today</span> <span class="p">=</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Today</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">directoryName</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetDirectoryName</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">directoryName</span><span class="p">))</span>
+            <span class="n">directoryName</span> <span class="p">=</span> <span class="n">AppDomain</span><span class="p">.</span><span class="n">CurrentDomain</span><span class="p">.</span><span class="n">BaseDirectory</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">fileNameWithoutExtension</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetFileNameWithoutExtension</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+        <span class="kt">var</span> <span class="n">extension</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetExtension</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+
+        <span class="kt">var</span> <span class="n">fileName</span> <span class="p">=</span> <span class="n">fileNameWithoutExtension</span> <span class="p">+</span> <span class="s">&quot;_&quot;</span> <span class="p">+</span> <span class="n">_today</span><span class="p">.</span><span class="n">ToString</span><span class="p">(</span><span class="s">&quot;yyyyMMdd&quot;</span><span class="p">)</span> <span class="p">+</span> <span class="n">extension</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">file</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span> <span class="n">fileName</span><span class="p">);</span>
+
+        <span class="n">_writer</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StreamWriter</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+
+
+        <span class="c1">//Keep the last 3 days, delete the rest, but keep at least 3 files, even if they are older</span>
+        <span class="k">const</span> <span class="kt">int</span> <span class="n">magicNumber</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+        <span class="kt">var</span> <span class="n">oldFiles</span> <span class="p">=</span> <span class="n">Directory</span><span class="p">.</span><span class="n">GetFiles</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span> <span class="n">fileNameWithoutExtension</span> <span class="p">+</span> <span class="s">&quot;*&quot;</span> <span class="p">+</span> <span class="n">extension</span><span class="p">)</span>
+                                <span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="p">{</span> <span class="n">Path</span> <span class="p">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">LastWrite</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="n">GetLastWriteTime</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">})</span>
+                                <span class="p">.</span><span class="n">OrderByDescending</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">LastWrite</span><span class="p">)</span>
+                                <span class="p">.</span><span class="n">ToArray</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">oldFiles</span><span class="p">.</span><span class="n">Length</span> <span class="p">&gt;</span> <span class="n">magicNumber</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">fewDaysAgo</span> <span class="p">=</span> <span class="n">_today</span><span class="p">.</span><span class="n">AddDays</span><span class="p">(-</span><span class="n">magicNumber</span><span class="p">);</span>
+
+            <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">oldFile</span> <span class="k">in</span> <span class="n">oldFiles</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">LastWrite</span> <span class="p">&lt;</span> <span class="n">fewDaysAgo</span><span class="p">).</span><span class="n">Select</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Path</span><span class="p">))</span>
+                <span class="k">try</span> <span class="p">{</span> <span class="n">File</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">oldFile</span><span class="p">);</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span> <span class="cm">/* ignore */</span> <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">_writer</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Write</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">EnsureWriter</span><span class="p">().</span><span class="n">Write</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">WriteLine</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">EnsureWriter</span><span class="p">().</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Flush</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="k">lock</span> <span class="p">(</span><span class="k">this</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                    <span class="n">_writer</span><span class="p">.</span><span class="n">Flush</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Dispose</span><span class="p">(</span><span class="kt">bool</span> <span class="n">disposing</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">disposing</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                <span class="n">_writer</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>]]></content:encoded> </item> <item> <title><![CDATA[Playing with Sets]]></title> <description><![CDATA[The [`Distinct`](https://msdn.microsoft.com/en-us/library/vstudio/bb348436.aspx) method is one of the really useful methods in the `System.Linq` namespace. Internally, it&#39;s really simple, too. It will just iterate your collection and add them all to a [`HashSet`](https://msdn.microsoft.com/en-us/library/bb359438.aspx). The set will make sure that each item is only added once on its own. ]]></description> <link>//steven.thuriot.be/playing-with-sets</link> <guid isPermaLink="true">//steven.thuriot.be/playing-with-sets</guid> <pubDate>2015-10-08T17:29:00+00:00</pubDate> <media:content url="//cdn.thuriot.be/images/Covers/color-paint-cans.jpg" medium="image"/> <content:encoded><![CDATA[<p>The <a href="https://msdn.microsoft.com/en-us/library/vstudio/bb348436.aspx"><code>Distinct</code></a> method is one of the really useful methods in the <code>System.Linq</code> namespace. Internally, it&#39;s really simple, too. It will just iterate your collection and add them all to a <a href="https://msdn.microsoft.com/en-us/library/bb359438.aspx"><code>HashSet</code></a>. The set will make sure that each item is only added once on its own.</p> <p>Instead of adding all items and returning just the set, <code>Distinct</code> will actually create an iterator that will return the item if successfully added. While this is a good idea since the actual execution is deferred, at times it is nice to just create the set and keep working with it, instead.</p> <p>While this is simple enough as is, I created an extension method anyway.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">static</span> <span class="n">HashSet</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ToSet</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">return</span> <span class="k">new</span> <span class="n">HashSet</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">source</span><span class="p">);</span>
 <span class="p">}</span>
@@ -347,39 +431,4 @@ Snapshot age: 27
         <span class="c1">//Do stuff  </span>
     <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div>]]></content:encoded> </item> <item> <title><![CDATA[Nuget Build And Deploy]]></title> <description><![CDATA[After attending [Scott Hanselman](http://www.hanselman.com)&#39;s [session at Techdays](http://channel9.msdn.com/Events/TechDays/TechDays-2011-Belgium/KEY01), I was really excited about [NuGet](http://nuget.org/). It&#39;s so easy to use and so versatile. Only one thing bothered me, and that is actually building your own NuGet package. First you need to let it generate a nuspec file, fill in everything by hand and only then you can let it generate your NuGet package. Then you need to update said NuSpec file everything something of relevance changes.  It&#39;s not a hard thing to do, it&#39;s just a bit bothersome and we&#39;d be off better if this was automated to some point. ]]></description> <link>//steven.thuriot.be/nuget-build-and-deploy</link> <guid isPermaLink="true">//steven.thuriot.be/nuget-build-and-deploy</guid> <pubDate>2012-03-05T18:41:00+00:00</pubDate> <content:encoded><![CDATA[<p>After attending <a href="http://www.hanselman.com">Scott Hanselman</a>&#39;s <a href="http://channel9.msdn.com/Events/TechDays/TechDays-2011-Belgium/KEY01">session at Techdays</a>, I was really excited about <a href="http://nuget.org/">NuGet</a>. It&#39;s so easy to use and so versatile. Only one thing bothered me, and that is actually building your own NuGet package. First you need to let it generate a nuspec file, fill in everything by hand and only then you can let it generate your NuGet package. Then you need to update said NuSpec file everything something of relevance changes.  It&#39;s not a hard thing to do, it&#39;s just a bit bothersome and we&#39;d be off better if this was automated to some point.</p> <p>So I started working on a little tool to help me build my NuSpec on the fly and create a NuGet package right away and potentially use this as a Visual Studio&#39;s build event.</p> <p>The post build event can be implemented like this:</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">if &quot;$(ConfigurationName)&quot; == &quot;Release&quot; (  
-  del /Q /F *.tmp
-  &quot;R:\PathToTheExecutable\NuGet.BuildAndDeploy.exe&quot; /dll &quot;lib\$(TargetFileName)&quot; /outputdir &quot;$(TargetDir)\..&quot; /projectUrl http://thuriot.be/ /tags Small helper framework /dependencies &quot;Ninject 2.2&quot;
-)
-</code></pre></div> <p>The build output then looks like this:</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">------ Rebuild All started: Project: Aikido, Configuration: Release Any CPU ------
-  Aikido -<span class="ni">&amp;gt;</span> E:\Projects\Aikido\Release\lib\Aikido.dll
-  Generating the NuSpec file for Aikido Framework version 1.0.0.0.
-
-  Finished generating the NuSpec file succesfully.
-  Writing NuSpec file... NuSpec file saved succesfully.
-
-  Starting to build the NuGet pack...
-
-  Attempting to build package from &#39;Aikido_Framework.nuspec&#39;.
-  Successfully created package &#39;E:\Projects\- NuGet Packages\NuGet Packages\Aikido_Framework.1.0.0.0.nupkg&#39;.
-
------- Skipped Rebuild All: Project: Aikido.Test, Configuration: Release Any CPU ------
-Project not selected to build for this solution configuration 
-========== Rebuild All: 1 succeeded, 0 failed, 1 skipped ==========
-</code></pre></div> <p>The generated NuSpec file looks like this:</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
-<span class="nt">&lt;package</span> <span class="na">xmlns=</span><span class="s">&quot;http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd&quot;</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;metadata&gt;</span>
-    <span class="nt">&lt;id&gt;</span>Aikido<span class="nt">&lt;/id&gt;</span>
-    <span class="nt">&lt;version&gt;</span>1.0.0.0<span class="nt">&lt;/version&gt;</span>
-    <span class="nt">&lt;authors&gt;</span>Steven Thuriot<span class="nt">&lt;/authors&gt;</span>
-    <span class="nt">&lt;owners&gt;</span>Steven Thuriot<span class="nt">&lt;/owners&gt;</span>
-    <span class="nt">&lt;projectUrl&gt;</span>http://thuriot.be/<span class="nt">&lt;/projectUrl&gt;</span>
-    <span class="nt">&lt;requireLicenseAcceptance&gt;</span>false<span class="nt">&lt;/requireLicenseAcceptance&gt;</span>
-    <span class="nt">&lt;description&gt;</span>Small helper framework<span class="nt">&lt;/description&gt;</span>
-    <span class="nt">&lt;tags&gt;</span>Small helper framework<span class="nt">&lt;/tags&gt;</span>
-    <span class="nt">&lt;dependencies&gt;</span>
-      <span class="nt">&lt;dependency</span> <span class="na">id=</span><span class="s">&quot;Ninject&quot;</span> <span class="na">version=</span><span class="s">&quot;2.2&quot;</span> <span class="nt">/&gt;</span>
-    <span class="nt">&lt;/dependencies&gt;</span>
-  <span class="nt">&lt;/metadata&gt;</span>
-<span class="nt">&lt;/package&gt;</span>
-</code></pre></div> <p>I realise it&#39;s a quick and dirty solution, but for a tool this small and simple it really doesn&#39;t matter, nor is it worth spending a lot more time on it. It took a minimal amount of work to make, it does what it is supposed to do and that is more than enough for its purpose.</p> <p><img src="//cdn.thuriot.be/images/GithubIcon.png" alt="GitHub"> You can take a look at the source code or download a built assembly on <a href="https://github.com/StevenThuriot/NuGet-Build-And-Deploy">GitHub</a>.</p> <p>Enjoy!</p> ]]></content:encoded> </item> </channel> </rss>
+</code></pre></div>]]></content:encoded> </item> </channel> </rss>
