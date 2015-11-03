@@ -61,14 +61,16 @@ public class DailyTraceListener : TraceListener
         var oldFiles = Directory.GetFiles(directoryName, fileNameWithoutExtension + "*" + extension)
                                 .Select(x => new { Path = x, LastWrite = File.GetLastWriteTime(x) })
                                 .OrderByDescending(x => x.LastWrite)
-                                .Skip(magicNumber)
                                 .ToArray();
 
-        if (oldFiles.Length > 0)
+        if (oldFiles.Length > magicNumber)
         {
             var fewDaysAgo = _today.AddDays(-magicNumber);
 
-            foreach (var oldFile in oldFiles.Where(x => x.LastWrite < fewDaysAgo).Select(x => x.Path))
+            var olderThanAFewDays = oldFiles.Where(x => x.LastWrite < fewDaysAgo).ToArray();
+            var skipAmount = Math.Max(0, magicNumber - (oldFiles.Length - olderThanAFewDays.Length));
+
+            foreach (var oldFile in olderThanAFewDays.Skip(skipAmount).Select(x => x.Path))
                 try { File.Delete(oldFile); } catch { /* ignore */ }
         }
 
