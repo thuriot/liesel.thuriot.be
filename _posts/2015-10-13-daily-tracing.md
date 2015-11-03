@@ -61,6 +61,7 @@ public class DailyTraceListener : TraceListener
         var oldFiles = Directory.GetFiles(directoryName, fileNameWithoutExtension + "*" + extension)
                                 .Select(x => new { Path = x, LastWrite = File.GetLastWriteTime(x) })
                                 .OrderByDescending(x => x.LastWrite)
+                                .Skip(magicNumber)
                                 .ToArray();
 
         if (oldFiles.Length > magicNumber)
