@@ -47,7 +47,7 @@
                                 <span class="p">.</span><span class="n">Skip</span><span class="p">(</span><span class="n">magicNumber</span><span class="p">)</span>
                                 <span class="p">.</span><span class="n">ToArray</span><span class="p">();</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">oldFiles</span><span class="p">.</span><span class="n">Length</span> <span class="p">&gt;</span> <span class="n">magicNumber</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">oldFiles</span><span class="p">.</span><span class="n">Length</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
         <span class="p">{</span>
             <span class="kt">var</span> <span class="n">fewDaysAgo</span> <span class="p">=</span> <span class="n">_today</span><span class="p">.</span><span class="n">AddDays</span><span class="p">(-</span><span class="n">magicNumber</span><span class="p">);</span>
 
