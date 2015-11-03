@@ -64,7 +64,7 @@ public class DailyTraceListener : TraceListener
                                 .Skip(magicNumber)
                                 .ToArray();
 
-        if (oldFiles.Length > magicNumber)
+        if (oldFiles.Length > 0)
         {
             var fewDaysAgo = _today.AddDays(-magicNumber);
 
