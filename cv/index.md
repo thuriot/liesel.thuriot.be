@@ -7,7 +7,7 @@ cover: //cdn.thuriot.be/images/Covers/Resume.jpg
 #Steven Thuriot
 * Date of birth: February 23, 1987
 * Born in Leuven, Belgium
-* Lives in Nossegem, Flemish Brabant
+* Lives in Hoboken, Antwerp, Belgium
 * Has a [linkedin](https://linkedin.com/in/steventhuriot) page
 
 ## Personal Details
