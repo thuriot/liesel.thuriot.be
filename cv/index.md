@@ -26,14 +26,20 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 * SD Worx
 * April 2014 - Present
 * Position: Consultant / Technical Analyst
-* Tools: C# v4.0, WPF, WCF, Autofac v3, NuGet, Visual Studio 2015, TFS 2012, Memory Profiler, dotTrace, Infragistics, DevExpress, TeamCity, Scrum, …
+* Tools: C# v4.5, WPF, WCF, C++, Autofac v3, NuGet, Visual Studio 2015, TFS 2015, dotTrace, dotMemory, DevExpress, TeamCity, Scrum, …
 
-As part of a smaller team, I work on the reporting suite, originally written in WPF.
-The suit is a customized tool to report on any data source within SD Worx with customized layouts and output. 
+As part of a smaller team, I work on the reporting suite, originally written in WPF. This suite is a custom tool to report on any data source within SD Worx with customized layouts and output.
 
-One of the new data sources that we want to support is an older [Btrieve](http://en.wikipedia.org/wiki/Btrieve) database. My main focus is to build a solution that supports reading the data from this database while building a tool that allows applying metadata and transformations to the data supplied by Btrieve.
+One of the new data sources that we want to support is an older Btrieve database. 
 
-The second objective is to convert the WPF client to an MVC5 one.
+My main focus is to build a solution that supports reading the data from this source using SQL syntax while building a tool that allows applying metadata and transformations to the data supplied by Btrieve. To achieve this, we created a code generator that will create assemblies that can be used to synchronize and transform the original data to our own format which is stored to drive in Memory Mapped Files (for speed).
+
+During execution some parts can be read directly from our transformed data, while other parts need to be calculated at runtime. Complex expression trees are generated during report execution and calculate the required data. Some of the calculated code needs to be converted from C++ (eBlox’ original reporting) to C# and adapted to work on our system.
+
+Performance is kept in mind the entire time, making sure the overall execution and feel is as snappy as can be.
+
+The second objective is to convert the WPF client to an MVC5 one while adding new functionality and providing a better user experience.
+
 
 
 ## xBlox: Payroll Management System
