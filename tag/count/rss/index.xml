@@ -22,7 +22,7 @@
     <span class="kt">var</span> <span class="n">countedItems</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
 
     <span class="kt">var</span> <span class="n">enumerator</span> <span class="p">=</span> <span class="n">enumerable</span><span class="p">.</span><span class="n">GetEnumerator</span><span class="p">();</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">enumerator</span><span class="p">.</span><span class="n">MoveNext</span><span class="p">()</span> <span class="p">&amp;</span><span class="n">amp</span><span class="p">;&amp;</span><span class="n">amp</span><span class="p">;</span> <span class="n">countedItems</span> <span class="p">&lt;</span> <span class="n">numberOfItemsToCount</span><span class="p">)</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">enumerator</span><span class="p">.</span><span class="n">MoveNext</span><span class="p">()</span> <span class="p">&amp;&amp;</span> <span class="n">countedItems</span> <span class="p">&lt;</span> <span class="n">numberOfItemsToCount</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">countedItems</span><span class="p">++;</span>
     <span class="p">}</span>
