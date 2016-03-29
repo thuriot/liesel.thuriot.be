@@ -40,7 +40,7 @@ private static bool OptimizedCount<T>(IEnumerable<T> enumerable, int numberOfIte
     var countedItems = 0;
 
     var enumerator = enumerable.GetEnumerator();
-    while (enumerator.MoveNext() &amp;&amp; countedItems < numberOfItemsToCount)
+    while (enumerator.MoveNext() && countedItems < numberOfItemsToCount)
     {
 		countedItems++;
     }
