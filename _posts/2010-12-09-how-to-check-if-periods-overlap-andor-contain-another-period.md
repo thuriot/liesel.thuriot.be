@@ -48,7 +48,7 @@ namespace Helpers
         ///</returns>
         public static Boolean HasOverlap(Period period1, Period period2)
         {
-            return period2.Start< period1.End &amp;&amp; period2.End > period1.Start;
+            return period2.Start< period1.End && period2.End > period1.Start;
         }
 
         ///<summary>
@@ -61,7 +61,7 @@ namespace Helpers
         ///</returns>
         public static Boolean Contains(Period period1, Period period2)
         {
-            return period2.Start >= period1.Start &amp;&amp; period2.End<= period1.End;
+            return period2.Start >= period1.Start && period2.End<= period1.End;
         }
     }
 }
