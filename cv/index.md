@@ -4,12 +4,12 @@ title: Curriculum Vitae
 cover: //cdn.thuriot.be/images/Covers/Resume.jpg
 ---
 
-#Steven Thuriot
+# Steven Thuriot
 * Date of birth: February 23, 1987
 * Born in Leuven, Belgium
 * Lives in Hoboken, Antwerp, Belgium
 * Has a [linkedin](https://linkedin.com/in/steventhuriot) page
-* And a [github](https://github.com/steventhuriot) too
+* And a [github](https://github.com/steventhuriot) one, too
 
 ## Personal Details
 
@@ -26,8 +26,8 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 ## Reporting Suite
 * SD Worx
 * April 2014 - Present
-* Position: Consultant / Senior Lead Developer / Technical Analyst
-* Tools: C# v4.5, WPF, WCF, C++, Autofac v3, NuGet, Visual Studio 2015, TFS 2015, dotTrace, dotMemory, DevExpress, TeamCity, Scrum, …
+* Position: Consultant /  Senior Lead Developer / Technical Analyst  
+* Tools: C# v4.5+, WPF, AngularJS, WCF (Later replaced by WebApi), C++,  Autofac, NuGet, Visual Studio, TFS (Later replaced by VSO/Git), dotTrace,  dotMemory, DevExpress, TeamCity, Agile, … 
 
 As part of a smaller team, I took up the role of Senior Lead Developer and work  on the reporting suite, originally written in WPF. This suite is a custom tool to  report on any data source within SD Worx with customized layouts and output.  One of the new data sources that we want to support is an older Btrieve  database.  
 
