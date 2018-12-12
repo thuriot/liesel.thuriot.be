@@ -9,6 +9,7 @@ cover: //cdn.thuriot.be/images/Covers/Resume.jpg
 * Born in Leuven, Belgium
 * Lives in Hoboken, Antwerp, Belgium
 * Has a [linkedin](https://linkedin.com/in/steventhuriot) page
+* And a [github](https://github.com/steventhuriot) too
 
 ## Personal Details
 
@@ -25,21 +26,24 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 ## Reporting Suite
 * SD Worx
 * April 2014 - Present
-* Position: Consultant / Technical Analyst
+* Position: Consultant / Senior Lead Developer / Technical Analyst
 * Tools: C# v4.5, WPF, WCF, C++, Autofac v3, NuGet, Visual Studio 2015, TFS 2015, dotTrace, dotMemory, DevExpress, TeamCity, Scrum, …
 
-As part of a smaller team, I work on the reporting suite, originally written in WPF. This suite is a custom tool to report on any data source within SD Worx with customized layouts and output.
+As part of a smaller team, I took up the role of Senior Lead Developer and work  on the reporting suite, originally written in WPF. This suite is a custom tool to  report on any data source within SD Worx with customized layouts and output.  One of the new data sources that we want to support is an older Btrieve  database.  
 
-One of the new data sources that we want to support is an older Btrieve database. 
+My main focus is to build a solution that supports reading the data from this  source using SQL syntax while building a tool that allows applying metadata  and transformations to the data supplied by Btrieve. To achieve this, we  created a code generator that will create assemblies that can be used to  synchronize and transform the original data to our own format which is stored  to drive in Memory Mapped Files (for speed).  
 
-My main focus is to build a solution that supports reading the data from this source using SQL syntax while building a tool that allows applying metadata and transformations to the data supplied by Btrieve. To achieve this, we created a code generator that will create assemblies that can be used to synchronize and transform the original data to our own format which is stored to drive in Memory Mapped Files (for speed).
+During execution some parts can be read directly from our transformed data,  while other parts need to be calculated at runtime. Complex expression trees  are generated during report execution and calculate the required data. Some of  the calculated code needs to be converted from C++ (eBlox’ original reporting)  to C# and adapted to work on our system.  
 
-During execution some parts can be read directly from our transformed data, while other parts need to be calculated at runtime. Complex expression trees are generated during report execution and calculate the required data. Some of the calculated code needs to be converted from C++ (eBlox’ original reporting) to C# and adapted to work on our system.
+Performance is kept in mind the entire time, making sure the overall execution  and feel is as snappy as can be. 
 
-Performance is kept in mind the entire time, making sure the overall execution and feel is as snappy as can be.
+The second objective is to convert the WPF client to an MVC one, using  AngularJS, while adding new functionality and providing a better user  experience.  
 
-The second objective is to convert the WPF client to an MVC5 one while adding new functionality and providing a better user experience.
+We work hard to keep this team up and running in an agile way. Short  standups, sprint planning, small consumable user stories, retrospectives and  poker sessions are just the start. 
 
+As part of our migration to Visual Studio Online, I’ve worked hard to write out  guidelines for our team to follow when working with Git. How to branch, merge,  rebase, create pull requests, etc; The works! 
+
+Finally, to keep everything running as smooth as possible, we’ve created a  Slack channel to smoothline our communication, especially when people are  working remotely. For this channel, I created a Slack Bot that responds to  commands typed in chat. This bot handles all the tedious work that would  otherwise fall on the team’s shoulders and reduces it to seconds. A few examples are looking up concerns (name or id) and their location on the  storage servers, queuing them for a full sync from the source data, test the  production servers if they’re up and running properly (e.g. after a new release)  and more… As a fun little extra, it’s also able to look up what’s for dinner on any  provided date. 
 
 
 ## xBlox: Payroll Management System
