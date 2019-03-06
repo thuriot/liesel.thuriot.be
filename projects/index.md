@@ -73,6 +73,8 @@ cover: //cdn.thuriot.be/images/Covers/keyboard.jpg
 	* .NET Helper to make executing a piece of code in a separate `AppDomain` easier.
 * [uGovernor](https://github.com/StevenThuriot/uGovernor)
 	* a µTorrent cli
+* [FunctorComparer](https://github.com/StevenThuriot/FunctorComparer)
+	* Takes a `Func<T, TKey>` or `Comparison<T>` and turns it into a Comparer.
 
 ----------
 
