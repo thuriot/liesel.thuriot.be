@@ -75,6 +75,17 @@ cover: //cdn.thuriot.be/images/Covers/keyboard.jpg
 	* a µTorrent cli
 * [FunctorComparer](https://github.com/StevenThuriot/FunctorComparer)
 	* Takes a `Func<T, TKey>` or `Comparison<T>` and turns it into a Comparer.
+* [SettingsManagement](https://github.com/StevenThuriot/SettingsManagement)
+	* Flexible Typed App/Web.config Settings Management
+	* Generates IL on the fly!
+* [Reaper Mute Toggler](https://github.com/StevenThuriot/ReaperMuteToggler)
+	* Binds to any specified hotkey and calls the Cockos Reaper API to toggle mute.
+	* Hotkey can be changed in config or while running
+	* API endpoint is configurable in case you don't want to toggle mute but toggle the arm-button instead
+	* Lives in the system tray!
+* [GitAutoCommit](https://github.com/StevenThuriot/GitAutoCommit)
+	* Automatically commit changes to git on a set interval, ending with a squash merge to the original head
+	* Runs as a dotnet tool!
 
 ----------
 
