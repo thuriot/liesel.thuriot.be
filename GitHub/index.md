@@ -3,7 +3,7 @@ layout: page
 title: GitHub
 ---
 
-![Praise Octocat](http://octocat.thuriot.be/octocat)
+![Praise Octocat](https://randoctocat.herokuapp.com/octocat)
 
 Hello World!
 Meet me on [GitHub](https://github.com/StevenThuriot)! .... Or click the Octocat to see another one!
