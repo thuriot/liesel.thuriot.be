@@ -1,3 +1,7 @@
+git add -A .
+git commit -m "Updated website"
+git push
+
 # docker build -t build-steventhuriot:1.0 .
 docker run -v ${pwd}:/usr/src/app --rm -it build-steventhuriot:1.0
 
@@ -5,7 +9,7 @@ cd _site
 
 Remove-Item build.sh -Force
 Remove-Item Dockerfile -Force
-Remove-Item generate.ps1 -Force
+Remove-Item commit.ps1 -Force
 
 git init
 git remote add upstream "https://github.com/thuriot/steven.thuriot.be.git"
