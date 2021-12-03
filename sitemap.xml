@@ -133,9 +133,6 @@
     <loc>//steven.thuriot.be/projects/</loc>
   </url>
   <url>
-    <loc>//steven.thuriot.be/author/steven/</loc>
-  </url>
-  <url>
     <loc>//steven.thuriot.be/tag/projects/</loc>
   </url>
   <url>
@@ -299,5 +296,8 @@
   </url>
   <url>
     <loc>//steven.thuriot.be/tag/logging/</loc>
+  </url>
+  <url>
+    <loc>//steven.thuriot.be/author/steven/</loc>
   </url>
 </urlset>
