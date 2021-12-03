@@ -88,7 +88,11 @@ cover: //cdn.thuriot.be/images/Covers/keyboard.jpg
 	* What do you do when NGROK is blocked at work? make your own!
 	* Super simple self-hosted public urls for local dev environments.
 	* Awesome multi-platform console UI thanks to [gui.cs](https://github.com/migueldeicaza/gui.cs) by [Miguel de Icaza](https://github.com/migueldeicaza) !
-
+* [dotnet-i18n-translate](https://github.com/StevenThuriot/dotnet-i18n-translate)
+	* dotnet tooling to automatically translate ngx-translate files, supporting both flat structure as nested.
+	* Uses the DeepL API
+	* Also has a Azure DevOps build step available!
+	
 ----------
 
 # Forever ongoing
