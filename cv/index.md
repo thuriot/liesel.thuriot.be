@@ -23,9 +23,28 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 
 
 # Professional Experience
+## Engagement Products
+* SD Worx
+* Nov 2020 - Present
+* Position: Senior Technical Analyst / Scrum Master
+* Tools: Angular, ASP.NET Core, .NET6
+
+Full stack developer in Angular/ASP.NET Core, working on products part of the SD Worx Assistant, specifically targetting engagement with customers, e.g. a messaging system using an angular website to send messages to the mobile app and other channels. These messages can include rich content, surveys, polls, etc.. But also automated messages, like for instance a "happy birthday" message.
+
+Other projects include setting up a datavault of several sources, which can be used to dynamically create groups. These groups can be used on a company level. One implementation of these groups is allowing messages being sent to a specific group. 
+
+## SD Worx Assistant
+* SD Worx
+* Apr 2019 – Nov 2020
+* Position: Senior Technical Analyst / Scrum Master
+* Tools: Angular, ASP.NET Core, .NET Core 2 ~> .NET6
+
+Full stack developer in Angular/ASP.NET Core.
+NLP Developer for the chat bot of the SD Worx Assistant 
+
 ## Reporting Suite
 * SD Worx
-* April 2014 - Present
+* April 2014 - Apr 2019
 * Position: Consultant /  Senior Lead Developer / Technical Analyst  
 * Tools: C# v4.5+, WPF, AngularJS, WCF (Later replaced by WebApi), C++,  Autofac, NuGet, Visual Studio, TFS (Later replaced by VSO/Git), dotTrace,  dotMemory, DevExpress, TeamCity, Agile, … 
 
