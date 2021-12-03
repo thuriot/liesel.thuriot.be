@@ -1,7 +1,3 @@
-git add -A .
-git commit -m "Updated website"
-git push
-
 # docker build -t build-steventhuriot:1.0 .
 docker run -v ${pwd}:/usr/src/app --rm -it build-steventhuriot:1.0
 
@@ -25,3 +21,7 @@ git push -q upstream HEAD:gh-pages
 
 cd ..
 Remove-Item -LiteralPath _site -Force -Recurse
+
+git add -A .
+git commit -m "Updated website"
+git push
