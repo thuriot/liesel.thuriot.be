@@ -32,7 +32,7 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 
 Full stack developer in Angular/ASP.NET Core, working on products part of the SD Worx Assistant, specifically targetting engagement with customers, e.g. a messaging system using an angular website to send messages to the mobile app and other channels. These messages can include rich content, surveys, polls, etc.. But also automated messages, like for instance a "happy birthday" message and insights pages (graphs).
 
-Other projects include setting up a datavault of several sources, which can be used to dynamically create groups. These groups can be used on a company level. One implementation of these groups is allowing messages being sent to a specific group. 
+Other projects include setting up a datavault of several sources, which can be used to either dynamically (by using filters) or statically create groups. These groups can be used on a company level. One implementation of these groups is allowing messages being sent to a specific group.
 
 ## SD Worx Assistant
 * SD Worx
@@ -41,7 +41,10 @@ Other projects include setting up a datavault of several sources, which can be u
 * Tools: Angular, ASP.NET Core, .NET Core 2 ~> .NET6
 * Platform: Azure
 
-Full stack developer in Angular/ASP.NET Core.
+Full stack developer in Angular/ASP.NET Core. 
+
+Helping design and build a generic API that allows pluging in several building blocks in a way that the accompaning app can show and offer these blocks as tiles and offer their functionality. Other functionalities being built are things like push notifications to app users using a content management system as well as creating a system for creating groups that can be used as receivers for this system.
+
 NLP Developer for the chat bot of the SD Worx Assistant.
 
 ## Reporting Suite
