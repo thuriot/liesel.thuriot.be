@@ -24,6 +24,10 @@
         display: none!important;
     }
 
+	a::after {
+		content: " (" attr(href) ")";
+	}
+
     footer.post-meta {
         a::after {
             content: '';
