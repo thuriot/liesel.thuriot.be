@@ -1,0 +1,27 @@
+@media print {
+    #orbs-bar {
+        display: none;
+    }
+    
+    footer {
+        display: none;
+    }
+    
+    main {
+        padding: 2em;
+    }
+    
+    .post {
+        width: 100%;
+        max-width: unset;
+    }
+    
+    a::after{
+      content: " (" attr(href) ")";
+    }
+    
+    * { /* Print Background Images */
+        -webkit-print-color-adjust: exact !important; /* Chrome, Safari, Edge */
+        color-adjust: exact !important; /*Firefox*/
+    }   
+}
