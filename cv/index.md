@@ -23,6 +23,16 @@ In my spare time, I enjoy thinking of and working on new tools. I always try to 
 
 
 # Professional Experience
+## Domain Architect Digital Channels
+* SD Worx
+* Jan 2022 - Present
+* Position: Domain Architect
+
+As a domain architect, it is my responsibility to support the development and roadmap of our products. 
+
+To develop an architectural vision, focussed on the near feature (12-18 months), translate this vision both functionally and technically towards the Digital Channels squads within the domain and support the product manager in building our roadmap.
+
+
 ## Engagement Products
 * SD Worx
 * Nov 2020 - Present
