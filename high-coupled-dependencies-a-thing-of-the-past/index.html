@@ -1,0 +1,257 @@
+<!DOCTYPE html> <html> <head> <meta charset="utf-8"/> <meta http-equiv="X-UA-Compatible" content="IE=edge"/> <title>Highly coupled dependencies, a thing of the past. &mdash; Steven Thuriot.be</title> <meta name="description" content="Blogging about things on your new Jekyll site"/> <link rel="canonical" href="//steven.thuriot.be/high-coupled-dependencies-a-thing-of-the-past"> <meta name="HandheldFriendly" content="True"/> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <script type="text/javascript">WebFontConfig={google:{families:["Montserrat:400,700:latin","Lora:700:latin"]},custom:{families:["FontAwesome"],urls:["//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"]}};(function(){var a=document.createElement("script");a.src="https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js";a.type="text/javascript";a.async="true";var b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);})();</script> <meta name="theme-color" content="#434a4d"> <link rel="icon" sizes="192x192" href="//cdn.thuriot.be/images/Avatars/Raven.jpg"> <link rel="stylesheet" type="text/css" href="//steven.thuriot.be/assets/css/screen.css"/> </head> <body class="post-template"> <header id="orbs-bar" class="sidebar no-cover"> <nav id="site-head"> <div id="site-head-logo"> <a id="blog-logo" href="//steven.thuriot.be/"><img src="//cdn.thuriot.be/images/Avatars/Raven.jpg" alt="Steven Thuriot.be" title="Home"></a> </div> <div class="blog-links"> <a class="fa fa-terminal" role="presentation" href="//steven.thuriot.be/projects" title="Projects"></a> <a class="fa fa-github-alt" role="presentation" href="//steven.thuriot.be/GitHub" title="GitHub"></a> <a class="fa fa-street-view" role="presentation" href="//steven.thuriot.be/cv" title="Curriculum Vitae"></a> <a class="fa fa-rss" role="presentation" href="//steven.thuriot.be/rss" target="_blank" title="Subscribe"></a> </div> </nav> </header> <main class="content" role="main"> <article class="post"> <header class="post-header"> <h1 class="post-title">Highly coupled dependencies, a thing of the past.</h1> <section class="post-meta"> <time class="post-date" datetime="2010-12-21">21 December 2010</time> on <a href="//steven.thuriot.be/tag/c/">C#</a>, <a href="//steven.thuriot.be/tag/coupling/">Coupling</a>, <a href="//steven.thuriot.be/tag/depencency/">Depencency</a>, <a href="//steven.thuriot.be/tag/injection/">Injection</a>, <a href="//steven.thuriot.be/tag/ioc/">Ioc</a> </section> </header> <section class="post-content"> <p>Programming 101, try to avoid highly coupled dependencies. Luckily, with today&#39;s frameworks, this has become a thing of the past.</p> <p>First, what are highly coupled dependencies? To understand this, here&#39;s a little example:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">interface</span> <span class="n">MultiplierInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">GetMultiplier</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">MultiplierImplementation</span> <span class="p">:</span> <span class="n">MultiplierInterface</span> 
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">GetMultiplier</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="m">5f</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Calculator</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="n">MultiplierInterface</span> <span class="n">multiplier</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiplierImplementation</span><span class="p">();</span>
+
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">Multiply</span><span class="p">(</span><span class="kt">float</span> <span class="n">number</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">number</span> <span class="p">*</span> <span class="n">multiplier</span><span class="p">.</span><span class="n">GetMultiplier</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>As you can see in this rather strange code sample, the <em>Calculator</em> class has a highly coupled dependency to the <em>MultiplierImplementation</em> class. I realise it&#39;s not a code sample you&#39;ll ever encounter in real life, but it works for showing what I&#39;m talking about.</p> <p>A better way to build the <em>Calculator</em> class would be to use a factory. <em>Calculator</em> would implement a constructor with the <em>Multiplier</em> interface as a parameter. The factory will then create an instance of a class implementing the <em>Multiplier</em> interface and pass it to the constructor of <em>Calculator</em>. This moves the dependency management from <em>Calculator</em> to the factory. As a consequence, if the <code><code>Calculator</code></code> needed to be assembled with a different <em>Multiplier</em> implementation, the <em>Calculator</em> code would not have to be changed. This is called dependency injection.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">CalculatorFactory</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="n">Calculator</span> <span class="nf">BuildCalculator</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">MultiplierInterface</span> <span class="n">multiplier</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiplierImplementation</span><span class="p">();</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">Calculator</span><span class="p">(</span><span class="n">multiplier</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>In a more realistic software application, this may happen if a new version of a base application is constructed with a different service implementation. Using factories, only the service code and the Factory code would need to be modified, but not the code of the multiple users of the service.</p> <p>Creating all these factories can quickly become a lot of work, though. It&#39;s not called &quot;manual dependency injection&quot; for nothing. So, long story short, how to automate this process? It&#39;s simple! Use a dependency injection framework. In .NET, one of the better frameworks to do this is called <a href="http://ninject.org/">Ninject</a>. It&#39;s an amazing piece of code that takes care of any sort of dependency injection you would ever need. Simply get the latest dll, reference it in your project and stop worrying about highly coupled dependencies. At the time of this post, the latest Ninject version is v2.0.</p> <p>Here&#39;s a little example how the above code would look when using the Ninject framework rather than self-made factories.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">interface</span> <span class="n">MultiplierInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">GetMultiplier</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">MultiplierImplementation</span> <span class="p">:</span> <span class="n">MultiplierInterface</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">GetMultiplier</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="m">5f</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Calculator</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="n">MultiplierInterface</span> <span class="n">multiplier</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="kt">float</span> <span class="nf">Multiply</span><span class="p">(</span><span class="kt">float</span> <span class="n">number</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">number</span> <span class="p">*</span> <span class="n">multiplier</span><span class="p">.</span><span class="n">GetMultiplier</span><span class="p">();</span>
+    <span class="p">}</span>
+
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">Calculator</span><span class="p">(</span><span class="n">MultiplierInterface</span> <span class="n">multiplier</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">multiplier</span> <span class="p">=</span> <span class="n">multiplier</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">CalculatorModule</span> <span class="p">:</span> <span class="n">NinjectModule</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Load</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">MultiplierInterface</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">MultiplierImplementation</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">Calculator</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Program</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">IKernel</span> <span class="n">kernel</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StandardKernel</span><span class="p">(</span><span class="k">new</span> <span class="n">CalculatorModule</span><span class="p">());</span>
+        <span class="n">Calculator</span> <span class="n">calculator</span> <span class="p">=</span> <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">Calculator</span><span class="p">&gt;();</span>
+        <span class="c1">//Logic implementation...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>As you can see, all you need to do is create a Ninject kernel and pass it all the modules you&#39;ve created as parameters. Inside these modules, you declare the objects you want to place inside the kernel. Every object that gets injected or receives injects, needs to be declared. By simply putting the [Inject] attribute over <em>Calculator</em>&#39;s constructor, Ninject will know it needs to inject it with an instance that implements <em>MultiplierInterface</em>. There are three possibilities when Ninject creates an instance of an object.</p> <ul> <li>There is one constructor with an Inject attribute. Ninject will use this constructor.</li> <li>There are multiple constructors but no Inject attributes are defined. Ninject will select the constructor with the most parameters that it understands to resolve.</li> <li>There are no constructors. Ninject will use the default constructor.</li> </ul> <p>When injecting, Ninject will notice you&#39;ve bound the <em>MultiplierImplementation</em> class to this interface. It will then create an instance of this class and pass it to <em>Calculator</em>&#39;s constructor. All you need to do is ask the kernel for a <em>Calculator</em> and it will automate all the rest. It&#39;s as simple as that. You might also notice that the <em>ToSelf()</em> method is used when binding the Calculator class. This is simply because it does not have an interface in this example and it&#39;s a lot faster than writing it like this:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">Bind</span><span class="p">&lt;</span><span class="n">Calculator</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">Calculator</span><span class="p">&gt;();</span>
+</code></pre></div> <p>I, of course, realise real life isn&#39;t always that simple. Because of this, I&#39;ve prepared two other, more complicated code samples to show how this framework works.</p> <h1>First Ninject Sample</h1> <p>First, we will create an interface that our objects will use.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">interface</span> <span class="n">IRunnable</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">Run</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div> <p>Second, we will create four objects that each implement this interface in a unique way.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">Runnable1</span> <span class="p">:</span> <span class="n">IRunnable</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Runnable2</span> <span class="p">:</span> <span class="n">IRunnable</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Runnable3</span> <span class="p">:</span> <span class="n">IRunnable</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;world&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Runnable4</span> <span class="p">:</span> <span class="n">IRunnable</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;!&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>We will also create a controller that contains one of each. Its constructor will obviously accept four <em>IRunnable</em> interfaces. This is where it gets tricky. How will Ninject know which object to pass?! Simply put, it doesn&#39;t. This is where attributes come in. We will create three attributes.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">FirstNinjectAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{</span> <span class="p">}</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">SecondNinjectAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{</span> <span class="p">}</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">ThirdNinjectAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{</span> <span class="p">}</span>
+</code></pre></div> <p>These attributes will be used to make clear to Ninject which implementation should be used where. Without these attributes, it would simply create an instance of the first deceleration of the <em>IRunnable</em> interface four times and pass it to the constructor. This is, of course, not desirable in almost every case. We make it clear to Ninject which implementation belongs to which attribute in the <em>NinjectModule</em>.</p> <p>And here it is:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">RunnableModule</span> <span class="p">:</span> <span class="n">NinjectModule</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Load</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">IRunnable</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">Runnable1</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">IRunnable</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">Runnable2</span><span class="p">&gt;().</span><span class="n">WhenTargetHas</span><span class="p">&lt;</span><span class="n">FirstNinjectAttribute</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">IRunnable</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">Runnable3</span><span class="p">&gt;().</span><span class="n">WhenTargetHas</span><span class="p">&lt;</span><span class="n">SecondNinjectAttribute</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">IRunnable</span><span class="p">&gt;().</span><span class="n">To</span><span class="p">&lt;</span><span class="n">Runnable4</span><span class="p">&gt;().</span><span class="n">WhenTargetHas</span><span class="p">&lt;</span><span class="n">ThirdNinjectAttribute</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">NinjectController</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">().</span><span class="n">InSingletonScope</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>Our first runnable class gets declared without an attribute. If Ninject needs to pass a parameter typed <em>IRunnable</em> that does not have any of these attributes, it will pass an instance of <em>Runnable1</em>. We finally bind <em>NinjectController</em> to itself. Notice, however, that we&#39;re binding this class in singleton scope. Simply put, this means that every time you ask the kernel for a <em>NinjectController</em>, it will return that very same instance every time. This is quite desirable behaviour for a controller. Standard behaviour for Ninject is to create a new instance every time you call the Get method. It&#39;s the same as calling <em>.InTransientScope()</em> when binding the class. There are two other scopes available: Thread ( <em>.InThreadScope()</em> ) and Request ( <em>.InRequestScope()</em> ). Both are pretty straight forward. In thread scope, Ninject will create one instance per thread. In request scope, it will create one instance per web request. In the latter case, it will destroy that instance when the request ends.</p> <p>Finally, here&#39;s the code for our controller:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">NinjectController</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="n">IRunnable</span> <span class="n">testRunnable1</span><span class="p">;</span>
+    <span class="k">private</span> <span class="n">IRunnable</span> <span class="n">testRunnable2</span><span class="p">;</span>
+    <span class="k">private</span> <span class="n">IRunnable</span> <span class="n">testRunnable3</span><span class="p">;</span>
+    <span class="k">private</span> <span class="n">IRunnable</span> <span class="n">testRunnable4</span><span class="p">;</span>
+
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">NinjectController</span><span class="p">(</span><span class="n">IRunnable</span> <span class="n">testRunnable1</span><span class="p">,</span> <span class="p">[</span><span class="n">FirstNinject</span><span class="p">]</span> <span class="n">IRunnable</span> <span class="n">testRunnable2</span><span class="p">,</span> <span class="p">[</span><span class="n">SecondNinject</span><span class="p">]</span> <span class="n">IRunnable</span> <span class="n">testRunnable3</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">testRunnable1</span> <span class="p">=</span> <span class="n">testRunnable1</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">testRunnable2</span> <span class="p">=</span> <span class="n">testRunnable2</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">testRunnable3</span> <span class="p">=</span> <span class="n">testRunnable3</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">testRunnable4</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">SetRunnable4</span><span class="p">([</span><span class="n">ThirdNinject</span><span class="p">]</span> <span class="n">IRunnable</span> <span class="n">testRunnable</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">testRunnable4</span> <span class="p">=</span> <span class="n">testRunnable</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">testRunnable1</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+        <span class="n">testRunnable2</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+        <span class="n">testRunnable3</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+        <span class="n">testRunnable4</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The first parameter will get an instance of the Runnable class that is defined without an attribute. The others will get an instance of those with the correct attribute. But wait, you say, the constructor doesn&#39;t have a parameter for the fourth runnable instance. What gives?! Won&#39;t running this result in the program throwing an exception?!</p> <p>Well, this is another strength of Ninject. Notice that <em>Inject</em> attribute above the <em>SetRunnable4</em> method? That&#39;s right, it will call this method and pass the correct instance right after injecting the constructor, leaving us with a controller that has all 4 runnable classes filled in. Sweet!</p> <p>Here&#39;s a main method to run this code sample:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">Program</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">IKernel</span> <span class="n">kernel</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StandardKernel</span><span class="p">(</span><span class="k">new</span> <span class="n">RunnableModule</span><span class="p">());</span>
+        <span class="n">NinjectController</span> <span class="n">controller</span> <span class="p">=</span> <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">NinjectController</span><span class="p">&gt;();</span>
+        <span class="n">controller</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The output of this will be <strong>&quot;Hello, world!&quot;</strong>.</p> <h1>Second Ninject Sample</h1> <p>Okay, so now we know how to inject normal classes. So what if the class you want to inject has a parameter list of unknown length? And what if this parameter list is a list of <em>Strings</em> or other constants?</p> <p>Let&#39;s create a few classes that will be injected. This sample will also be using the attributes we created in the previous sample.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">NinjectParams</span>
+<span class="p">{</span>
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">NinjectParams</span><span class="p">(</span><span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">strings</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">item</span> <span class="k">in</span> <span class="n">strings</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">NinjectParamsWithFirstAttribute</span>
+<span class="p">{</span>
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">NinjectParamsWithFirstAttribute</span><span class="p">([</span><span class="n">FirstNinject</span><span class="p">]</span> <span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">strings</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">item</span> <span class="k">in</span> <span class="n">strings</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">NinjectParamsWithSecondAttribute</span>
+<span class="p">{</span>
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">NinjectParamsWithSecondAttribute</span><span class="p">([</span><span class="n">SecondNinject</span><span class="p">]</span> <span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">strings</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">item</span> <span class="k">in</span> <span class="n">strings</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">NinjectParamsWithBothAttributes</span>
+<span class="p">{</span>
+<span class="na">    [Inject]</span>
+    <span class="k">public</span> <span class="nf">NinjectParamsWithBothAttributes</span><span class="p">([</span><span class="n">FirstNinject</span><span class="p">,</span> <span class="n">SecondNinject</span><span class="p">]</span> <span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">strings</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">item</span> <span class="k">in</span> <span class="n">strings</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>As you can see, each constructor has the <em>params</em> attribute and accepts <em>Strings</em>. In other words the constructor will accept an unlimited amount of <em>Strings</em>. Without the attributes, Ninject would just inject every <em>String</em> it can find. This is, of course, unwanted behaviour most of the time. Using attributes, we can control the behaviour.</p> <p>The tricky part is creating the module which will be loaded in the kernel.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">ParamsModule</span> <span class="p">:</span> <span class="n">Ninject</span><span class="p">.</span><span class="n">Modules</span><span class="p">.</span><span class="n">NinjectModule</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Load</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">ToConstant</span><span class="p">(</span><span class="s">&quot;First String&quot;</span><span class="p">);</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">ToConstant</span><span class="p">(</span><span class="s">&quot;Second String&quot;</span><span class="p">);</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">ToConstant</span><span class="p">(</span><span class="s">&quot;Third String will only be passed to FirstNinjectAttribute&quot;</span><span class="p">)</span>
+            <span class="p">.</span><span class="n">WhenTargetHas</span><span class="p">&lt;</span><span class="n">FirstNinjectAttribute</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">ToConstant</span><span class="p">(</span><span class="s">&quot;Fourth String will only be passed to SecondNinjectAttribute&quot;</span><span class="p">)</span>
+            <span class="p">.</span><span class="n">WhenTargetHas</span><span class="p">&lt;</span><span class="n">SecondNinjectAttribute</span><span class="p">&gt;();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">ToConstant</span><span class="p">(</span><span class="s">&quot;Fifth String&quot;</span><span class="p">);</span>
+
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">NinjectParams</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">NinjectParamsWithFirstAttribute</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">NinjectParamsWithSecondAttribute</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">();</span>
+        <span class="n">Bind</span><span class="p">&lt;</span><span class="n">NinjectParamsWithBothAttributes</span><span class="p">&gt;().</span><span class="n">ToSelf</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>Here&#39;s an example of the main function to use with this code.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">Program</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">IKernel</span> <span class="n">kernel</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StandardKernel</span><span class="p">(</span><span class="k">new</span> <span class="n">ParamsModule</span><span class="p">());</span>
+        <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">NinjectParams</span><span class="p">&gt;();</span>
+        <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">NinjectParamsWithFirstAttribute</span><span class="p">&gt;();</span>
+        <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">NinjectParamsWithSecondAttribute</span><span class="p">&gt;();</span>
+        <span class="n">kernel</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">NinjectParamsWithBothAttributes</span><span class="p">&gt;();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>Now we come to the interesting part, what exactly will the output be?</p> <p><em>NinjectParams</em> will receive three <em>Strings</em>, namely the ones that were bound in the module without an attribute.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="p">{</span><span class="kt">string</span><span class="p">[</span><span class="m">3</span><span class="p">]}</span>
+<span class="na">    [0]</span><span class="p">:</span> <span class="s">&quot;First String&quot;</span>
+<span class="na">    [1]</span><span class="p">:</span> <span class="s">&quot;Second String&quot;</span>
+<span class="na">    [2]</span><span class="p">:</span> <span class="s">&quot;Fifth String&quot;</span>
+</code></pre></div> <p><em>NinjectParamsWithFirstAttribute</em> will receive four <em>Strings.</em> Each <em>String</em> without attribute will be injected because it fits the constructor, but also the <em>String</em> with the <em>FirstNinjectAttribute</em>. The <em>Strings</em> with an attribute have priority over others and will be injected first.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="p">{</span><span class="kt">string</span><span class="p">[</span><span class="m">4</span><span class="p">]}</span>
+<span class="na">    [0]</span><span class="p">:</span> <span class="s">&quot;Third String will only be passed to FirstNinjectAttribute&quot;</span>
+<span class="na">    [1]</span><span class="p">:</span> <span class="s">&quot;First String&quot;</span>
+<span class="na">    [2]</span><span class="p">:</span> <span class="s">&quot;Second String&quot;</span>
+<span class="na">    [3]</span><span class="p">:</span> <span class="s">&quot;Fifth String&quot;</span>
+</code></pre></div> <p><em>NinjectParamsWithSecondAttribute</em> has similar behaviour, but will accept the <em>String</em> with the <em>SecondNinjectAttribute</em> rather than the first one.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="p">{</span><span class="kt">string</span><span class="p">[</span><span class="m">4</span><span class="p">]}</span>
+<span class="na">    [0]</span><span class="p">:</span> <span class="s">&quot;Fourth String will only be passed to SecondNinjectAttribute&quot;</span>
+<span class="na">    [1]</span><span class="p">:</span> <span class="s">&quot;First String&quot;</span>
+<span class="na">    [2]</span><span class="p">:</span> <span class="s">&quot;Second String&quot;</span>
+<span class="na">    [3]</span><span class="p">:</span> <span class="s">&quot;Fifth String&quot;</span>
+</code></pre></div> <p>Finally, <em>NinjectParamsWithBothAttributes</em> will receive all <em>Strings</em>.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="p">{</span><span class="kt">string</span><span class="p">[</span><span class="m">5</span><span class="p">]}</span>
+<span class="na">    [0]</span><span class="p">:</span> <span class="s">&quot;Third String will only be passed to FirstNinjectAttribute&quot;</span>
+<span class="na">    [1]</span><span class="p">:</span> <span class="s">&quot;Fourth String will only be passed to SecondNinjectAttribute&quot;</span>
+<span class="na">    [2]</span><span class="p">:</span> <span class="s">&quot;First String&quot;</span>
+<span class="na">    [3]</span><span class="p">:</span> <span class="s">&quot;Second String&quot;</span>
+<span class="na">    [4]</span><span class="p">:</span> <span class="s">&quot;Fifth String&quot;</span>
+</code></pre></div> <p>Swapping the attributes in this last sample does not change the order in which they are injected. In other words, changing the attribute to &quot;[SecondNinject, FirstNinject]&quot; will make no difference. Ninject will inject in the order that the <em>Strings</em> are defined in the module. It doesn&#39;t really matter though if you define them in the module before or after the classes that will be injected in version 2 and up. In lower versions, Ninject will only inject things that are defined already, defining another <em>String</em> afterwards means it won&#39;t be injected.</p> <p>However, I feel it&#39;s generally good practice to define the things that will be injected into others first. Best practice would be to completely separate them into different modules. One module for each type. (e.g. for this example: <em>StringsModule</em>, <em>NinjectParamsModule</em>, and so on). When splitting up the modules, it&#39;s a good idea to pass the modules like <em>StringModule</em> to the kernel&#39;s constructor first. This will help keep things easy to understand for both yourself and others.</p> <p>Think things through before writing the module. The order might be important for your application.</p> </section> <footer class="post-footer with-cover" style="background-image: url(//cdn.thuriot.be/images/Covers/db0b47_5415753.jpg)"> <figure class="author-image"> <a class="img" href="//steven.thuriot.be/author/steven" style="background-image: url(//cdn.thuriot.be/images/Avatars/2020-08-30.jpg)"> <span class="hidden">Steven Thuriot's Picture</span></a> </figure> <section class="author"> <h4><a href="//steven.thuriot.be/author/steven">Steven Thuriot</a></h4> <p>Developer, tinkerer, lifetime student, full time nerd and somewhat of an otaku. Graduated applied computer science. Likes to complain about traffic.</p> <div class="author-meta"> <span class="author-location fa fa-map-marker">Belgium</span> </div> </section> </footer> </article> <section class="disqus"> <div id="disqus_thread"></div> <script type="text/javascript">(function(){var a=document.createElement("script");a.type="text/javascript";a.async=true;a.src="//thuriot.disqus.com/embed.js";(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(a);})();</script> <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments.</a></noscript> </section> </main> <footer class="site-footer clearfix wide"> <section class="copyright"><a href="//steven.thuriot.be/">Steven Thuriot.be</a> &copy; 2021</section> <p class="clearfix"/> <section class="poweredby"><a href="https://github.com/StevenThuriot/Marbles" target="_blank">Marbles</a> &mdash; Designed with <i class="fa fa-heart"></i> by <a href="https://github.com/StevenThuriot" target="_blank">Steven Thuriot</a></section> </footer> <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script> <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.1.0/jquery.fitvids.min.js"></script> </body> </html>

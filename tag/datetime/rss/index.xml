@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; DateTime]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://steven.thuriot.be</link> <link href="//steven.thuriot.be/tag/datetime/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[How to check if periods overlap and/or contain another period?]]></title> <description><![CDATA[Checking for overlap can be quite tricky. It&#39;s not hard at all to make the whole process far too complicated, resulting in a lot of overhead. Because of this, I decided to think about the easiest way to check for this and expand my helper class from the previous post. Imagine having a class called `Period`. This class contains a start and end date. ```csharp public class Period { ///&lt;summary&gt; /// Gets or sets the start date. ///&lt;/summary&gt; ///&lt;value&gt;The start date.&lt;/value&gt; public DateTime Start { get; set; } ///&lt;summary&gt; /// Gets or sets the end date. ///&lt;/summary&gt; ///&lt;value&gt;The end date.&lt;/value&gt; public DateTime End { get; set; } } ``` The helper class accepts two periods. It is possible to check if the periods overlap or if one period completely contains the other. ```csharp using System; namespace Helpers { ///&lt;summary&gt; /// Helpers.OverlapHelper ///&lt;/summary&gt; public static class OverlapHelper { ///&lt;summary&gt; /// Determines whether the specified periods overlap. ///&lt;/summary&gt; ///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt; ///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt; ///&lt;returns&gt; /// &lt;c&gt;true&lt;/c&gt; if the specified periods overlap; otherwise,&lt;c&gt;false&lt;/c&gt;. ///&lt;/returns&gt; public static Boolean HasOverlap(Period period1, Period period2) { return period2.Start&lt; period1.End &amp;&amp; period2.End &gt; period1.Start; } ///&lt;summary&gt; /// Determines whether period1 contains period2. ///&lt;/summary&gt; ///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt; ///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt; ///&lt;returns&gt; /// &lt;c&gt;true&lt;/c&gt; if period1 contains period2; otherwise,&lt;c&gt;false&lt;/c&gt;. ///&lt;/returns&gt; public static Boolean Contains(Period period1, Period period2) { return period2.Start &gt;= period1.Start &amp;&amp; period2.End&lt;= period1.End; } } } ``` And of course, some test cases. Period 1 starts March 23rd and stops March 28th. **Testcases for Overlap** ```xml 18/3 – 25/3 –&gt; true &amp;&amp; true –&gt; true 18/3 – 29/3 –&gt; true &amp;&amp; true –&gt; true 25/3 – 29/3 –&gt; true &amp;&amp; true –&gt; true 24/3 – 27/3 –&gt; true &amp;&amp; true –&gt; true 18/3 – 22/3 –&gt; true &amp;&amp; false –&gt; false 29/3 – 30/3 –&gt; false &amp;&amp; true –&gt; false ``` **Testcases for Contains** ```xml 18/3 – 25/3 –&gt; false &amp;&amp; true –&gt; false 18/3 – 29/3 –&gt; false &amp;&amp; false –&gt; false 25/3 – 29/3 –&gt; true &amp;&amp; false –&gt; false 24/3 – 27/3 –&gt; true &amp;&amp; true –&gt; true 18/3 – 22/3 –&gt; false &amp;&amp; true –&gt; false 29/3 – 30/3 –&gt; true &amp;&amp; false –&gt; false ``` ]]></description> <link>//steven.thuriot.be/how-to-check-if-periods-overlap-andor-contain-another-period</link> <guid isPermaLink="true">//steven.thuriot.be/how-to-check-if-periods-overlap-andor-contain-another-period</guid> <pubDate>2010-12-09T11:39:00+00:00</pubDate> <content:encoded><![CDATA[<p>Checking for overlap can be quite tricky. It&#39;s not hard at all to make the whole process far too complicated, resulting in a lot of overhead. Because of this, I decided to think about the easiest way to check for this and expand my helper class from the previous post.</p> <p>Imagine having a class called <code>Period</code>. This class contains a start and end date.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">class</span> <span class="nc">Period</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Gets or sets the start date.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="c1">///&lt;value&gt;The start date.&lt;/value&gt;</span>
+    <span class="k">public</span> <span class="n">DateTime</span> <span class="n">Start</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Gets or sets the end date.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="c1">///&lt;value&gt;The end date.&lt;/value&gt;</span>
+    <span class="k">public</span> <span class="n">DateTime</span> <span class="n">End</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The helper class accepts two periods. It is possible to check if the periods overlap or if one period completely contains the other.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helpers.OverlapHelper</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">OverlapHelper</span>
+    <span class="p">{</span>
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether the specified periods overlap.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;</span>
+        <span class="c1">///     &lt;c&gt;true&lt;/c&gt; if the specified periods overlap; otherwise,&lt;c&gt;false&lt;/c&gt;.</span>
+        <span class="c1">///&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">Boolean</span> <span class="nf">HasOverlap</span><span class="p">(</span><span class="n">Period</span> <span class="n">period1</span><span class="p">,</span> <span class="n">Period</span> <span class="n">period2</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">period2</span><span class="p">.</span><span class="n">Start</span><span class="p">&lt;</span> <span class="n">period1</span><span class="p">.</span><span class="n">End</span> <span class="p">&amp;&amp;</span> <span class="n">period2</span><span class="p">.</span><span class="n">End</span> <span class="p">&gt;</span> <span class="n">period1</span><span class="p">.</span><span class="n">Start</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether period1 contains period2.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period1&quot;&gt;The first period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;period2&quot;&gt;The second period.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;</span>
+        <span class="c1">///     &lt;c&gt;true&lt;/c&gt; if period1 contains period2; otherwise,&lt;c&gt;false&lt;/c&gt;.</span>
+        <span class="c1">///&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">Boolean</span> <span class="nf">Contains</span><span class="p">(</span><span class="n">Period</span> <span class="n">period1</span><span class="p">,</span> <span class="n">Period</span> <span class="n">period2</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">period2</span><span class="p">.</span><span class="n">Start</span> <span class="p">&gt;=</span> <span class="n">period1</span><span class="p">.</span><span class="n">Start</span> <span class="p">&amp;&amp;</span> <span class="n">period2</span><span class="p">.</span><span class="n">End</span><span class="p">&lt;=</span> <span class="n">period1</span><span class="p">.</span><span class="n">End</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>And of course, some test cases. Period 1 starts March 23rd and stops March 28th.</p> <p><strong>Testcases for Overlap</strong></p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">18/3 – 25/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+25/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+24/3 – 27/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 22/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+29/3 – 30/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+</code></pre></div> <p><strong>Testcases for Contains</strong></p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">18/3 – 25/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+18/3 – 29/3 –&gt; false <span class="err">&amp;&amp;</span> false –&gt; false
+25/3 – 29/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+24/3 – 27/3 –&gt; true  <span class="err">&amp;&amp;</span> true  –&gt; true
+18/3 – 22/3 –&gt; false <span class="err">&amp;&amp;</span> true  –&gt; false
+29/3 – 30/3 –&gt; true  <span class="err">&amp;&amp;</span> false –&gt; false
+</code></pre></div>]]></content:encoded> </item> <item> <title><![CDATA[How to make building Strings from dates easy?]]></title> <description><![CDATA[While the DateTime object might already have quite some standard formats for its ToString method, it&#39;s just not good enough to use directly in a front-end. In some applications, outputting dates can become quite a recurring job. Because of this, I decided to write a little helper class. This helper can easily be extended later by overloading the Print method to support other objects than just DateTime. ```csharp using System; namespace Helpers { ///&lt;summary&gt; /// Helpers.PrintHelper ///&lt;/summary&gt; public static class PrintHelper { ///&lt;summary&gt; /// Prints the specified date time. ///&lt;/summary&gt; ///&lt;param name=&quot;dateTime&quot;&gt;The date time.&lt;/param&gt; ///&lt;returns&gt;&lt;/returns&gt; public static String Print(DateTime dateTime) { return dateTime.ToString ( &quot;dddd, &#39;&quot; + AddOrdinal(dateTime.Day) + &quot; of&#39; MMMM yyyy &#39;at&#39; HH:mm:ss&quot; ); } ///&lt;summary&gt; /// Adds the ordinal. ///&lt;/summary&gt; ///&lt;param name=&quot;day&quot;&gt;The day.&lt;/param&gt; ///&lt;returns&gt;&lt;/returns&gt; private static string AddOrdinal(int day) { switch (day % 100) { case 11: case 12: case 13: return day.ToString() + &quot;th&quot;; } switch (day % 10) { case 1: return day.ToString() + &quot;st&quot;; case 2: return day.ToString() + &quot;nd&quot;; case 3: return day.ToString() + &quot;rd&quot;; default: return day.ToString() + &quot;th&quot;; } } } } ``` You can then use it as following: ```csharp String date=Helpers.PrintHelper.Print(DateTime.Now); ``` The variable &quot;date&quot; will then contain the datetime, formatted beautifully, including ordinals. ```xml 8th of December 2010 at 14:46:00 ``` ]]></description> <link>//steven.thuriot.be/how-to-make-building-strings-from-dates-easy</link> <guid isPermaLink="true">//steven.thuriot.be/how-to-make-building-strings-from-dates-easy</guid> <pubDate>2010-12-08T14:47:00+00:00</pubDate> <content:encoded><![CDATA[<p>While the DateTime object might already have quite some standard formats for its ToString method, it&#39;s just not good enough to use directly in a front-end.</p> <p>In some applications, outputting dates can become quite a recurring job. Because of this, I decided to write a little helper class. This helper can easily be extended later by overloading the Print method to support other objects than just DateTime.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helpers.PrintHelper</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">PrintHelper</span>
+    <span class="p">{</span>
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Prints the specified date time.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;dateTime&quot;&gt;The date time.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">String</span> <span class="nf">Print</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">dateTime</span><span class="p">.</span><span class="n">ToString</span>
+                <span class="p">(</span>
+                    <span class="s">&quot;dddd, &#39;&quot;</span> <span class="p">+</span>
+                    <span class="n">AddOrdinal</span><span class="p">(</span><span class="n">dateTime</span><span class="p">.</span><span class="n">Day</span><span class="p">)</span> <span class="p">+</span>
+                    <span class="s">&quot; of&#39; MMMM yyyy &#39;at&#39; HH:mm:ss&quot;</span>
+                <span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Adds the ordinal.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;day&quot;&gt;The day.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">AddOrdinal</span><span class="p">(</span><span class="kt">int</span> <span class="n">day</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">switch</span> <span class="p">(</span><span class="n">day</span> <span class="p">%</span> <span class="m">100</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">case</span> <span class="m">11</span><span class="p">:</span>
+                <span class="k">case</span> <span class="m">12</span><span class="p">:</span>
+                <span class="k">case</span> <span class="m">13</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;th&quot;</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">switch</span> <span class="p">(</span><span class="n">day</span> <span class="p">%</span> <span class="m">10</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">case</span> <span class="m">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;st&quot;</span><span class="p">;</span>
+                <span class="k">case</span> <span class="m">2</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;nd&quot;</span><span class="p">;</span>
+                <span class="k">case</span> <span class="m">3</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;rd&quot;</span><span class="p">;</span>
+                <span class="k">default</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">day</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">&quot;th&quot;</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>You can then use it as following:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">String</span> <span class="n">date</span> <span class="p">=</span> <span class="n">Helpers</span><span class="p">.</span><span class="n">PrintHelper</span><span class="p">.</span><span class="n">Print</span><span class="p">(</span><span class="n">DateTime</span><span class="p">.</span><span class="n">Now</span><span class="p">);</span>
+</code></pre></div> <p>The variable &quot;date&quot; will then contain the datetime, formatted beautifully, including ordinals.</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml">8th of December 2010 at 14:46:00
+</code></pre></div>]]></content:encoded> </item> </channel> </rss>

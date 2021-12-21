@@ -1,0 +1,88 @@
+<!DOCTYPE html> <html> <head> <meta charset="utf-8"/> <meta http-equiv="X-UA-Compatible" content="IE=edge"/> <title>Daily Tracing &mdash; Steven Thuriot.be</title> <meta name="description" content="Blogging about things on your new Jekyll site"/> <link rel="canonical" href="//steven.thuriot.be/daily-tracing"> <meta name="HandheldFriendly" content="True"/> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <script type="text/javascript">WebFontConfig={google:{families:["Montserrat:400,700:latin","Lora:700:latin"]},custom:{families:["FontAwesome"],urls:["//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"]}};(function(){var a=document.createElement("script");a.src="https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js";a.type="text/javascript";a.async="true";var b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b);})();</script> <meta name="theme-color" content="#434a4d"> <link rel="icon" sizes="192x192" href="//cdn.thuriot.be/images/Avatars/Raven.jpg"> <link rel="stylesheet" type="text/css" href="//steven.thuriot.be/assets/css/screen.css"/> </head> <body class="post-template"> <header id="orbs-bar" class="sidebar no-cover"> <nav id="site-head"> <div id="site-head-logo"> <a id="blog-logo" href="//steven.thuriot.be/"><img src="//cdn.thuriot.be/images/Avatars/Raven.jpg" alt="Steven Thuriot.be" title="Home"></a> </div> <div class="blog-links"> <a class="fa fa-terminal" role="presentation" href="//steven.thuriot.be/projects" title="Projects"></a> <a class="fa fa-github-alt" role="presentation" href="//steven.thuriot.be/GitHub" title="GitHub"></a> <a class="fa fa-street-view" role="presentation" href="//steven.thuriot.be/cv" title="Curriculum Vitae"></a> <a class="fa fa-rss" role="presentation" href="//steven.thuriot.be/rss" target="_blank" title="Subscribe"></a> </div> </nav> </header> <div class="main-header post-head" style="background-image: url(//cdn.thuriot.be/images/Covers/library.jpg)"></div> <main class="content" role="main"> <article class="post"> <header class="post-header"> <h1 class="post-title">Daily Tracing</h1> <section class="post-meta"> <time class="post-date" datetime="2015-10-14">14 October 2015</time> on <a href="//steven.thuriot.be/tag/c/">C#</a>, <a href="//steven.thuriot.be/tag/logging/">Logging</a>, <a href="//steven.thuriot.be/tag/tracing/">Tracing</a> </section> </header> <section class="post-content"> <p>No doubt about it. Tracing is very important when working on a project.</p> <p>Not only will it make tracking down bugs easier, it will also make it a lot easier to get some numbers for general usage, timings, etc.</p> <p>On a project I&#39;m currently working on, it&#39;s very interesting to have a lot of tracing. And I do mean <code>a lot</code>! The project is quite large and the logic is incredibly complex (sadly, by its very nature). Log files were growing fast, faster than we could manage. However, at any given time, we&#39;d only be interested in traces from the last three days, tops.</p> <p>I created a <code>TraceListener</code> that allows you to trace each day to an individual file. It will concatenate the date to the given file name. As soon as it notices we started a new day, it will create a new file and start writing to that one instead. At the same time, it will clean up any files older than three days, as those are not relevant to us anymore. The number of days it should keep, as well as the formatting of the file&#39;s title can easily be adjusted in code.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.IO</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Reflection</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">DailyTraceListener</span> <span class="p">:</span> <span class="n">TraceListener</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">_logLocation</span><span class="p">;</span>
+
+    <span class="k">private</span> <span class="n">StreamWriter</span> <span class="n">_writer</span><span class="p">;</span>
+    <span class="k">private</span> <span class="n">DateTime</span> <span class="n">_today</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">DailyTraceListener</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_logLocation</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="n">TextWriter</span> <span class="nf">EnsureWriter</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_today</span> <span class="p">==</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Today</span><span class="p">)</span> <span class="k">return</span> <span class="n">_writer</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">_writer</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+
+        <span class="n">_today</span> <span class="p">=</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">Today</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">directoryName</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetDirectoryName</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">(</span><span class="n">directoryName</span><span class="p">))</span>
+            <span class="n">directoryName</span> <span class="p">=</span> <span class="n">AppDomain</span><span class="p">.</span><span class="n">CurrentDomain</span><span class="p">.</span><span class="n">BaseDirectory</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">fileNameWithoutExtension</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetFileNameWithoutExtension</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+        <span class="kt">var</span> <span class="n">extension</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">GetExtension</span><span class="p">(</span><span class="n">_logLocation</span><span class="p">);</span>
+
+        <span class="kt">var</span> <span class="n">fileName</span> <span class="p">=</span> <span class="n">fileNameWithoutExtension</span> <span class="p">+</span> <span class="s">&quot;_&quot;</span> <span class="p">+</span> <span class="n">_today</span><span class="p">.</span><span class="n">ToString</span><span class="p">(</span><span class="s">&quot;yyyyMMdd&quot;</span><span class="p">)</span> <span class="p">+</span> <span class="n">extension</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">file</span> <span class="p">=</span> <span class="n">Path</span><span class="p">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span> <span class="n">fileName</span><span class="p">);</span>
+
+        <span class="n">_writer</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StreamWriter</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+
+
+        <span class="c1">//Keep the last 3 days, delete the rest, but keep at least 3 files, even if they are older</span>
+        <span class="k">const</span> <span class="kt">int</span> <span class="n">magicNumber</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+        <span class="kt">var</span> <span class="n">oldFiles</span> <span class="p">=</span> <span class="n">Directory</span><span class="p">.</span><span class="n">GetFiles</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span> <span class="n">fileNameWithoutExtension</span> <span class="p">+</span> <span class="s">&quot;*&quot;</span> <span class="p">+</span> <span class="n">extension</span><span class="p">)</span>
+                                <span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="p">{</span> <span class="n">Path</span> <span class="p">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">LastWrite</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="n">GetLastWriteTime</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">})</span>
+                                <span class="p">.</span><span class="n">OrderByDescending</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">LastWrite</span><span class="p">)</span>
+                                <span class="p">.</span><span class="n">ToArray</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">oldFiles</span><span class="p">.</span><span class="n">Length</span> <span class="p">&gt;</span> <span class="n">magicNumber</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">fewDaysAgo</span> <span class="p">=</span> <span class="n">_today</span><span class="p">.</span><span class="n">AddDays</span><span class="p">(-</span><span class="n">magicNumber</span><span class="p">);</span>
+
+            <span class="kt">var</span> <span class="n">olderThanAFewDays</span> <span class="p">=</span> <span class="n">oldFiles</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">LastWrite</span> <span class="p">&lt;</span> <span class="n">fewDaysAgo</span><span class="p">).</span><span class="n">ToArray</span><span class="p">();</span>
+            <span class="kt">var</span> <span class="n">skipAmount</span> <span class="p">=</span> <span class="n">Math</span><span class="p">.</span><span class="n">Max</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="n">magicNumber</span> <span class="p">-</span> <span class="p">(</span><span class="n">oldFiles</span><span class="p">.</span><span class="n">Length</span> <span class="p">-</span> <span class="n">olderThanAFewDays</span><span class="p">.</span><span class="n">Length</span><span class="p">));</span>
+
+            <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">oldFile</span> <span class="k">in</span> <span class="n">olderThanAFewDays</span><span class="p">.</span><span class="n">Skip</span><span class="p">(</span><span class="n">skipAmount</span><span class="p">).</span><span class="n">Select</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Path</span><span class="p">))</span>
+                <span class="k">try</span> <span class="p">{</span> <span class="n">File</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">oldFile</span><span class="p">);</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span> <span class="cm">/* ignore */</span> <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">_writer</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Write</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">EnsureWriter</span><span class="p">().</span><span class="n">Write</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">WriteLine</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">EnsureWriter</span><span class="p">().</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Flush</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="k">lock</span> <span class="p">(</span><span class="k">this</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                    <span class="n">_writer</span><span class="p">.</span><span class="n">Flush</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Dispose</span><span class="p">(</span><span class="kt">bool</span> <span class="n">disposing</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">disposing</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">_writer</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                <span class="n">_writer</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> </section> <footer class="post-footer with-cover" style="background-image: url(//cdn.thuriot.be/images/Covers/db0b47_5415753.jpg)"> <figure class="author-image"> <a class="img" href="//steven.thuriot.be/author/steven" style="background-image: url(//cdn.thuriot.be/images/Avatars/2020-08-30.jpg)"> <span class="hidden">Steven Thuriot's Picture</span></a> </figure> <section class="author"> <h4><a href="//steven.thuriot.be/author/steven">Steven Thuriot</a></h4> <p>Developer, tinkerer, lifetime student, full time nerd and somewhat of an otaku. Graduated applied computer science. Likes to complain about traffic.</p> <div class="author-meta"> <span class="author-location fa fa-map-marker">Belgium</span> </div> </section> </footer> </article> <section class="disqus"> <div id="disqus_thread"></div> <script type="text/javascript">(function(){var a=document.createElement("script");a.type="text/javascript";a.async=true;a.src="//thuriot.disqus.com/embed.js";(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(a);})();</script> <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments.</a></noscript> </section> </main> <footer class="site-footer clearfix wide"> <section class="copyright"><a href="//steven.thuriot.be/">Steven Thuriot.be</a> &copy; 2021</section> <p class="clearfix"/> <section class="poweredby"><a href="https://github.com/StevenThuriot/Marbles" target="_blank">Marbles</a> &mdash; Designed with <i class="fa fa-heart"></i> by <a href="https://github.com/StevenThuriot" target="_blank">Steven Thuriot</a></section> </footer> <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script> <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.1.0/jquery.fitvids.min.js"></script> </body> </html>

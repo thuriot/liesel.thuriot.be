@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?> <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> <channel> <title><![CDATA[Steven Thuriot.be &mdash; LINQ]]></title> <description><![CDATA[Thoughts, stories and ideas.]]></description> <link>http://steven.thuriot.be</link> <link href="//steven.thuriot.be/tag/linq/rss/" rel="self" type="application/rss+xml"/> <ttl>60</ttl> <item> <title><![CDATA[Avoid Count() methods]]></title> <description><![CDATA[At work I&#39;m currently working with [dotTrace](http://www.jetbrains.com/profiler/) to check the performance of our application. A few of our issues were quickly traced back to the faulty usage of the Count() extension method. Count() should be avoided as much as possible on IEnumerables. Count() is optimized to check for Count or Length properties, but if the used list doesn&#39;t have these implemented, Count() will iterate the entire list. We have a few fairly large lists in our application, so that quickly consumes quite a bit of time to run all the Count()&#39;s. Unless you&#39;re interested in the exact size of your list, I would say to avoid this method at all costs. However, even in this case there are a few better options. The most interesting option is to check with what kind of list you&#39;re working with. Lists like Collection, Array, List, ... either have a Length or Count property. This property is just a simple int that is already stored in the memory. It doesn&#39;t get much faster than this. The cost of calling these properties is neglectable. If the full size of your list is really important for your use case, it might pay off to switch to one of these types of lists. In case you&#39;re not interested in the full size of the list and don&#39;t want to or can&#39;t use a list that implements one of these properties, don&#39;t worry, there are a few other tips and tricks to handle these. I noticed that most of the time, Count() is used to check if there are any items in the list (**Count() &gt; 0 , != 0 or== 0** ). In this case it&#39;s much more interesting to use the LINQ Any() extension method. This method will check if there is one item in the list and return the result as a boolean. On a big list, you gain quite a bit of performance. Another common misusage of Count() is **Where(...).Count() &gt; 0**. In this case, it&#39;s far better to use **Any(...)**. In case 0 isn&#39;t the number you&#39;re checking against, it&#39;s still better to use **Count(...)**  instead and drop **Where(...)**. Since **Where** is lazy, it won&#39;t matter much for performance, but I find that the readability of what you are trying to do is increased greatly. For all the other cases, I wrote a few extension methods so it&#39;s possible to completely avoid using Count(). The idea behind these extension methods is that the list you&#39;re checking usually has a lot more items in it than the number you&#39;re checking against, for instance **&gt; 2** on a list of 300 items. On these kinds of checks, my extension methods truly shine. Rather than counting the whole list, they count x+1 items from the list, where x is the number you&#39;re checking against. You don&#39;t need to do any more counting than x+1 as you can check any of the conditions with this amount. This way, the actual counting is reduced greatly. When used correctly, the average cost will be a lot lower than using **Count()**. All of the extension methods also have an overload to allow you to specify a **Where(...)** clause so it can do everything in one go, rather than having to do a **Where(...)** first and a **Count()** after. ```csharp ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;comparePredicate&quot;&gt;The comparison function.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;The result of the passed predicate.&lt;/returns&gt; private static bool OptimizedCount&lt;T&gt;(IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate, Func&lt;int, bool&gt; comparePredicate) { if (enumerable == null || numberOfItems &lt; 0) return false; if (wherePredicate != null) { enumerable=enumerable.Where(wherePredicate); } var numberOfItemsToCount=checked(numberOfItems + 1); var countedItems=0; var enumerator=enumerable.GetEnumerator(); while (enumerator.MoveNext() &amp;&amp; countedItems &lt; numberOfItemsToCount) { countedItems++; } bool returnValue=comparePredicate(countedItems); return returnValue; } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems) {     return CountEqualTo(enumerable, numberOfItems, null); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate) {     return OptimizedCount(enumerable, numberOfItems, wherePredicate, x=&gt; x== numberOfItems); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains less items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt; [SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId=&quot;CountLess&quot;)] public static bool CountLessThan&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems) {     return CountLessThan(enumerable, numberOfItems, null); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains less items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt; [SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId=&quot;CountLess&quot;)] public static bool CountLessThan&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate) {     return OptimizedCount(enumerable, numberOfItems, wherePredicate, x=&gt; x &lt; numberOfItems); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains more items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountGreaterThan&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems) {     return CountGreaterThan(enumerable, numberOfItems, null); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains more items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountGreaterThan&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate) {     return OptimizedCount(enumerable, numberOfItems, wherePredicate, x=&gt; x &gt; numberOfItems); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains less or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; [SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId=&quot;CountLess&quot;)] public static bool CountLessOrEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems) {     return CountLessOrEqualTo(enumerable, numberOfItems, null); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains less or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; [SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId=&quot;CountLess&quot;)] public static bool CountLessOrEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate) {     return OptimizedCount(enumerable, numberOfItems, wherePredicate, x=&gt; x &lt;= numberOfItems); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains more or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountGreaterOrEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems) {     return CountGreaterOrEqualTo(enumerable, numberOfItems, null); } ///&lt;summary&gt; /// Counts a list, keeping in mind the check you are planning to do on it. /// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead. ///&lt;/summary&gt; ///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt; ///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt; ///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt; ///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt; ///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt; ///&lt;returns&gt;True if the list contains more or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt; public static bool CountGreaterOrEqualTo&lt;T&gt;(this IEnumerable&lt;T&gt; enumerable, int numberOfItems, Func&lt;T, bool&gt; wherePredicate) {     return OptimizedCount(enumerable, numberOfItems, wherePredicate, x=&gt; x &gt;= numberOfItems); } ``` A few more tips and tricks regarding **Count()**&#39;s. Do not use them in the check condition of for-loops. It will be executed every loop, causing a severe performance issue. Another, in my opinion, interesting optimization is the following one: Original code where the sublist is a Collection: ```csharp var number=list.SelectMany(x =&gt; x.SubList).Count(); ``` Optimized code: ```csharp var number=list.Sum(x =&gt; x.SubList.Count); ``` This way it will only make the sum of a few integers, which is much faster than creating one big list in memory, then count all the items. ]]></description> <link>//steven.thuriot.be/avoid-count-methods</link> <guid isPermaLink="true">//steven.thuriot.be/avoid-count-methods</guid> <pubDate>2011-08-22T18:50:00+00:00</pubDate> <content:encoded><![CDATA[<p>At work I&#39;m currently working with <a href="http://www.jetbrains.com/profiler/">dotTrace</a> to check the performance of our application. A few of our issues were quickly traced back to the faulty usage of the Count() extension method.</p> <p>Count() should be avoided as much as possible on IEnumerables. Count() is optimized to check for Count or Length properties, but if the used list doesn&#39;t have these implemented, Count() will iterate the entire list. We have a few fairly large lists in our application, so that quickly consumes quite a bit of time to run all the Count()&#39;s. Unless you&#39;re interested in the exact size of your list, I would say to avoid this method at all costs. However, even in this case there are a few better options.</p> <p>The most interesting option is to check with what kind of list you&#39;re working with. Lists like Collection, Array, List, ... either have a Length or Count property. This property is just a simple int that is already stored in the memory. It doesn&#39;t get much faster than this. The cost of calling these properties is neglectable. If the full size of your list is really important for your use case, it might pay off to switch to one of these types of lists.</p> <p>In case you&#39;re not interested in the full size of the list and don&#39;t want to or can&#39;t use a list that implements one of these properties, don&#39;t worry, there are a few other tips and tricks to handle these. I noticed that most of the time, Count() is used to check if there are any items in the list (<strong>Count() &gt; 0 , != 0 or == 0</strong> ). In this case it&#39;s much more interesting to use the LINQ Any() extension method. This method will check if there is one item in the list and return the result as a boolean. On a big list, you gain quite a bit of performance. Another common misusage of Count() is <strong>Where(...).Count() &gt; 0</strong>. In this case, it&#39;s far better to use <strong>Any(...)</strong>. In case 0 isn&#39;t the number you&#39;re checking against, it&#39;s still better to use <strong>Count(...)</strong>  instead and drop <strong>Where(...)</strong>. Since <strong>Where</strong> is lazy, it won&#39;t matter much for performance, but I find that the readability of what you are trying to do is increased greatly.</p> <p>For all the other cases, I wrote a few extension methods so it&#39;s possible to completely avoid using Count(). The idea behind these extension methods is that the list you&#39;re checking usually has a lot more items in it than the number you&#39;re checking against, for instance <strong>&gt; 2</strong> on a list of 300 items. On these kinds of checks, my extension methods truly shine. Rather than counting the whole list, they count x+1 items from the list, where x is the number you&#39;re checking against. You don&#39;t need to do any more counting than x+1 as you can check any of the conditions with this amount. This way, the actual counting is reduced greatly. When used correctly, the average cost will be a lot lower than using <strong>Count()</strong>. All of the extension methods also have an overload to allow you to specify a <strong>Where(...)</strong> clause so it can do everything in one go, rather than having to do a <strong>Where(...)</strong> first and a <strong>Count()</strong> after.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;comparePredicate&quot;&gt;The comparison function.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;The result of the passed predicate.&lt;/returns&gt;</span>
+<span class="k">private</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">OptimizedCount</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">comparePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">enumerable</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">numberOfItems</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">wherePredicate</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">enumerable</span> <span class="p">=</span> <span class="n">enumerable</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">wherePredicate</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">var</span> <span class="n">numberOfItemsToCount</span> <span class="p">=</span> <span class="k">checked</span><span class="p">(</span><span class="n">numberOfItems</span> <span class="p">+</span> <span class="m">1</span><span class="p">);</span>
+    <span class="kt">var</span> <span class="n">countedItems</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+
+    <span class="kt">var</span> <span class="n">enumerator</span> <span class="p">=</span> <span class="n">enumerable</span><span class="p">.</span><span class="n">GetEnumerator</span><span class="p">();</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">enumerator</span><span class="p">.</span><span class="n">MoveNext</span><span class="p">()</span> <span class="p">&amp;&amp;</span> <span class="n">countedItems</span> <span class="p">&lt;</span> <span class="n">numberOfItemsToCount</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">countedItems</span><span class="p">++;</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">returnValue</span> <span class="p">=</span> <span class="n">comparePredicate</span><span class="p">(</span><span class="n">countedItems</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">returnValue</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">CountEqualTo</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">OptimizedCount</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">wherePredicate</span><span class="p">,</span> <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">==</span> <span class="n">numberOfItems</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains less items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="na">[SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId = &quot;CountLess&quot;)]</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountLessThan</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">CountLessThan</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains less items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="na">[SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId = &quot;CountLess&quot;)]</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountLessThan</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">OptimizedCount</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">wherePredicate</span><span class="p">,</span>  <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">&lt;</span> <span class="n">numberOfItems</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains more items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountGreaterThan</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">CountGreaterThan</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains more items than defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountGreaterThan</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">OptimizedCount</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">wherePredicate</span><span class="p">,</span> <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">&gt;</span> <span class="n">numberOfItems</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains less or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="na">[SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId = &quot;CountLess&quot;)]</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountLessOrEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">CountLessOrEqualTo</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains less or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="na">[SuppressMessage(&quot;Microsoft.Naming&quot;, &quot;CA1702:CompoundWordsShouldBeCasedCorrectly&quot;, MessageId = &quot;CountLess&quot;)]</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountLessOrEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">OptimizedCount</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">wherePredicate</span><span class="p">,</span> <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">&lt;=</span> <span class="n">numberOfItems</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains more or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountGreaterOrEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">CountGreaterOrEqualTo</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">///&lt;summary&gt;</span>
+<span class="c1">/// Counts a list, keeping in mind the check you are planning to do on it.</span>
+<span class="c1">/// This way you don&#39;t have to count every item when you don&#39;t need to, resulting in less overhead.</span>
+<span class="c1">///&lt;/summary&gt;</span>
+<span class="c1">///&lt;param name=&quot;enumerable&quot;&gt;The list with items getting counted.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;numberOfItems&quot;&gt;The number of items that you are going to check for. The same number should be used in the predicate.&lt;/param&gt;</span>
+<span class="c1">///&lt;param name=&quot;wherePredicate&quot;&gt;The filter predicate to apply to the list.&lt;/param&gt;</span>
+<span class="c1">///&lt;typeparam name=&quot;T&quot;&gt;The type of item getting counted. This is of no relevance, just to keep the method generic.&lt;/typeparam&gt;</span>
+<span class="c1">///&lt;exception cref=&quot;OverflowException&quot;&gt;An overflow exception will be thrown when &#39;numberOfItems&#39; equals int.MaxValue&lt;/exception&gt;</span>
+<span class="c1">///&lt;returns&gt;True if the list contains more or the same amount of items as defined in &#39;numberOfItems&#39;.&lt;/returns&gt;</span>
+<span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="n">CountGreaterOrEqualTo</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">enumerable</span><span class="p">,</span> <span class="kt">int</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">wherePredicate</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">OptimizedCount</span><span class="p">(</span><span class="n">enumerable</span><span class="p">,</span> <span class="n">numberOfItems</span><span class="p">,</span> <span class="n">wherePredicate</span><span class="p">,</span> <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">&gt;=</span> <span class="n">numberOfItems</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div> <p>A few more tips and tricks regarding <strong>Count()</strong>&#39;s. Do not use them in the check condition of for-loops. It will be executed every loop, causing a severe performance issue.</p> <p>Another, in my opinion, interesting optimization is the following one:</p> <p>Original code where the sublist is a Collection:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="kt">var</span> <span class="n">number</span> <span class="p">=</span> <span class="n">list</span><span class="p">.</span><span class="n">SelectMany</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">SubList</span><span class="p">).</span><span class="n">Count</span><span class="p">();</span>
+</code></pre></div> <p>Optimized code:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="kt">var</span> <span class="n">number</span> <span class="p">=</span> <span class="n">list</span><span class="p">.</span><span class="n">Sum</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">SubList</span><span class="p">.</span><span class="n">Count</span><span class="p">);</span>
+</code></pre></div> <p>This way it will only make the sum of a few integers, which is much faster than creating one big list in memory, then count all the items.</p> ]]></content:encoded> </item> <item> <title><![CDATA[Guard your code using LINQ and Reflection]]></title> <description><![CDATA[Time to add another class to our Helpers. Defensive programming is very important. Checking that every parameter is correct before working with them is simply a must. The code for doing something like this quickly becomes very repetitive. Writing a Guard class is the perfect way to keep everything in check and avoid duplicate code. I decided to even take it a step further and use reflection to get the name of the method and the parameters where things are starting to go wrong and add them to the exception&#39;s message as extra information. The checks themselves are done using LINQ. ```csharp using System; using System.Collections.Generic; using System.Diagnostics; using System.Globalization; using System.Linq; using System.Reflection; using System.Text; using Helpers.Extensions; namespace Helpers { ///&lt;summary&gt; /// Helper to make sure the passed parameters are correct. ///&lt;/summary&gt; public static class Guard { ///&lt;summary&gt; /// Determines whether the typeToAssign can be assigned to the targetType ///&lt;/summary&gt; ///&lt;param name=&quot;typeToAssign&quot;&gt;The type to assign.&lt;/param&gt; ///&lt;param name=&quot;targetType&quot;&gt;Type of the target.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;The types can&#39;t be assigned.&lt;/exception&gt; public static void CanBeAssigned(Type typeToAssign, Type targetType) { if (!typeToAssign.CanBeAssignedTo(targetType)) { var message=String.Format(CultureInfo.CurrentCulture, targetType.IsInterface ? &quot;Type {0} can not be assigned to {1}: interface is not implemented.&quot; : &quot;Type {0} can not be assigned to {1}.&quot;, typeToAssign.Name, targetType.Name); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks the guids to ensure they are not empty. ///&lt;/summary&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the guids are empty.&lt;/exception&gt; public static void GuidNotEmpty(params Guid[] arguments) { Boolean faultyArguments=(from t in arguments where t== Guid.Empty select t).Any(); if (faultyArguments) { MethodBase methodBase=GetCallingMethod(); var message=&quot;Some guids are empty: &quot; + CreateMethodMessage(methodBase, arguments.ToObjectArray()); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks the dates to ensure they are in the future. ///&lt;/summary&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the past.&lt;/exception&gt; public static void InTheFuture(params DateTime[] arguments) { Boolean faultyArguments=(from t in arguments where !t.InTheFuture() select t).Any(); if (faultyArguments) { MethodBase methodBase=GetCallingMethod(); var message=&quot;Not all passed dates are in the past: &quot; + CreateMethodMessage(methodBase, arguments.ToObjectArray()); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks the dates to ensure they are in the past. ///&lt;/summary&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the future.&lt;/exception&gt; public static void InThePast(params DateTime[] arguments) { Boolean faultyArguments=(from t in arguments where !t.InThePast() select t).Any(); if (faultyArguments) { MethodBase methodBase=GetCallingMethod(); var message=&quot;Not all passed dates are in the past: &quot; + CreateMethodMessage(methodBase, arguments.ToObjectArray()); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks the arguments to ensure they aren&#39;t null. ///&lt;/summary&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null.&lt;/exception&gt; public static void NotNull(params object[] arguments) { Boolean faultyArguments; try { faultyArguments=(from t in arguments where t== null select t).Any(); } catch (ArgumentNullException) { faultyArguments=true; } if (faultyArguments) { MethodBase methodBase=GetCallingMethod(); var message=&quot;&lt;NULL&gt; has been passed: &quot; + CreateMethodMessage(methodBase, arguments); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks the arguments to ensure they aren&#39;t null, empty or whitespace. ///&lt;/summary&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null, empty or whitespace.&lt;/exception&gt; public static void NotNullOrWhiteSpace(params String[] arguments) { Boolean faultyArguments; try { faultyArguments=(from t in arguments where t.IsNullOrWhiteSpace() select t).Any(); } catch (ArgumentNullException) { faultyArguments=true; } if (faultyArguments) { MethodBase methodBase=GetCallingMethod(); var message=&quot;&lt;NULL&gt;, empty or whitespace has been passed: &quot; + CreateMethodMessage(methodBase, arguments); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Checks if the start datetime is before the end datetime. ///&lt;/summary&gt; ///&lt;param name=&quot;start&quot;&gt;The start datetime.&lt;/param&gt; ///&lt;param name=&quot;end&quot;&gt;The end datetime.&lt;/param&gt; ///&lt;exception cref=&quot;ArgumentException&quot;&gt;The start datetime is after or equal to end datetime.&lt;/exception&gt; public static void StartBeforeEnd(DateTime start, DateTime end) { if (!start.IsBefore(end)) { MethodBase methodBase=GetCallingMethod(); var message=&quot;The start datetime is after or equal to end datetime: &quot; + CreateMethodMessage(methodBase, new object[] { start, end }); throw new ArgumentException(message); } } ///&lt;summary&gt; /// Gets the calling method. ///&lt;/summary&gt; ///&lt;returns&gt;&lt;/returns&gt; private static MethodBase GetCallingMethod() { MethodBase result=null; var currentStackTrace=new StackTrace(2, false); int totalFrameCount=currentStackTrace.FrameCount; if (totalFrameCount &gt; 0) { result=currentStackTrace.GetFrame(0).GetMethod(); } return result; } ///&lt;summary&gt; /// Creates the message. ///&lt;/summary&gt; ///&lt;param name=&quot;methodBase&quot;&gt;The method base.&lt;/param&gt; ///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt; ///&lt;returns&gt;&lt;/returns&gt; private static string CreateMethodMessage(MethodBase methodBase, object[] arguments) { var builder=new StringBuilder(); var prefix=String.Format(CultureInfo.CurrentCulture, &quot;Class: {0} - Method: {1} - Args: &quot;, !methodBase.IsNull() ? methodBase.DeclaringType.FullName : &quot;&quot;, !methodBase.IsNull() ? methodBase.Name : &quot;&quot;); builder.Append(prefix); int paramLength=0; bool printArgumentNames=false; ParameterInfo[] methodParameters=null; if (arguments != null) { paramLength=arguments.Length; } if (methodBase != null) { methodParameters=methodBase.GetParameters(); if (methodParameters.Length == paramLength) { printArgumentNames=true; } } if (!arguments.IsNullOrEmpty()) { for (int i=0; i&lt; arguments.Length; i++) { if ((printArgumentNames)) { builder.Append(methodParameters[i].Name); builder.Append(&quot; = &quot;); } builder.Append(&quot;[&quot;); builder.Append(arguments[i] != null ? arguments[i].ToString() : &quot;NULL&quot;); builder.Append(&quot;]&quot;); if (i != arguments.Length - 1) { builder.Append(&quot;, &quot;); } } } else { builder.Append(&quot;No arguments&quot;); } return builder.ToString(); } } } ``` The code is very easy to use. Here are some sample methods: ```csharp private void NullMethod(object object1, object object2, object object3) { Helpers.Guard.NotNull(object1, object2, object3); //further logic } private void StringsMethod(String firstName, String lastName, String residence) { Helpers.Guard.NotNullOrWhiteSpace(firstName, lastName, residence); //further logic } private void GuidMethod(string firstGuid, string secondGuid, string thirdGuid, string fourthGuid) { Helpers.Guard.ParsableToGuid(firstGuid, secondGuid, thirdGuid); //further logic } private void DateMethod(DateTime dateTime, DateTime dateTime_2, DateTime dateTime_3) { Helpers.Guard.DateInThePast(dateTime, dateTime_2, dateTime_3); //further logic } ``` Because of the *params* keyword in the methods of the Guard class, it is possible to pass as much parameters to the method as needed. Obviously, it&#39;s also possible to use multiple checks in one method. ```csharp private void CombinedMethod(DateTime dateTime_1, DateTime dateTime_2, String string_1, String string_2) { Helpers.Guard.DateInThePast(dateTime_1, dateTime_2); Helpers.Guard.NotNullOrWhiteSpace(string_1, string_2); //further logic } ``` As for the output, running the following *Run* method (I am aware of the awkward and rather bad naming, it&#39;s merely to make it obvious how the output will be generated) would throw an exception ```csharp private void testMethod(StringBuilder stringBuilder1, StringBuilder builder2, StringBuilder object3) { Helpers.Guard.NotNull(stringBuilder1, builder2, object3); //logic } private void Run() { StringBuilder builder1=null; StringBuilder builder2=new StringBuilder(&quot;Hello&quot;); StringBuilder builder3=new StringBuilder(&quot;, world!&quot;); testMethod(builder1, builder2, builder3); } ``` with this message. I&#39;ve split it into several lines for readability. The actual message is in one line: ```xml &lt;NULL&gt; has been passed: Class: Thuriot.Tests.GuardTest - Method: testMethod - Args: stringBuilder1=[NULL], builder2=[Hello], object3=[, world!] ``` ]]></description> <link>//steven.thuriot.be/guard-your-code-using-linq-and-reflection</link> <guid isPermaLink="true">//steven.thuriot.be/guard-your-code-using-linq-and-reflection</guid> <pubDate>2010-12-23T10:13:00+00:00</pubDate> <content:encoded><![CDATA[<p>Time to add another class to our Helpers.</p> <p>Defensive programming is very important. Checking that every parameter is correct before working with them is simply a must. The code for doing something like this quickly becomes very repetitive. Writing a Guard class is the perfect way to keep everything in check and avoid duplicate code.</p> <p>I decided to even take it a step further and use reflection to get the name of the method and the parameters where things are starting to go wrong and add them to the exception&#39;s message as extra information. The checks themselves are done using LINQ.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Globalization</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Reflection</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Text</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Helpers.Extensions</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Helpers</span>
+<span class="p">{</span>
+    <span class="c1">///&lt;summary&gt;</span>
+    <span class="c1">/// Helper to make sure the passed parameters are correct.</span>
+    <span class="c1">///&lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">Guard</span>
+    <span class="p">{</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Determines whether the typeToAssign can be assigned to the targetType</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;typeToAssign&quot;&gt;The type to assign.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;targetType&quot;&gt;Type of the target.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;The types can&#39;t be assigned.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">CanBeAssigned</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToAssign</span><span class="p">,</span> <span class="n">Type</span> <span class="n">targetType</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">typeToAssign</span><span class="p">.</span><span class="n">CanBeAssignedTo</span><span class="p">(</span><span class="n">targetType</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="n">String</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">CultureInfo</span><span class="p">.</span><span class="n">CurrentCulture</span><span class="p">,</span> <span class="n">targetType</span><span class="p">.</span><span class="n">IsInterface</span> <span class="p">?</span>
+                    <span class="s">&quot;Type {0} can not be assigned to {1}: interface is not implemented.&quot;</span> <span class="p">:</span>
+                    <span class="s">&quot;Type {0} can not be assigned to {1}.&quot;</span><span class="p">,</span> <span class="n">typeToAssign</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">targetType</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the guids to ensure they are not empty.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the guids are empty.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">GuidNotEmpty</span><span class="p">(</span><span class="k">params</span> <span class="n">Guid</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="n">t</span> <span class="p">==</span> <span class="n">Guid</span><span class="p">.</span><span class="n">Empty</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Some guids are empty: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the dates to ensure they are in the future.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the past.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">InTheFuture</span><span class="p">(</span><span class="k">params</span> <span class="n">DateTime</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="p">!</span><span class="n">t</span><span class="p">.</span><span class="n">InTheFuture</span><span class="p">()</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Not all passed dates are in the past: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the dates to ensure they are in the past.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the dates are in the future.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">InThePast</span><span class="p">(</span><span class="k">params</span> <span class="n">DateTime</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                       <span class="k">where</span> <span class="p">!</span><span class="n">t</span><span class="p">.</span><span class="n">InThePast</span><span class="p">()</span>
+                                       <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;Not all passed dates are in the past: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">.</span><span class="n">ToObjectArray</span><span class="p">());</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the arguments to ensure they aren&#39;t null.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">NotNull</span><span class="p">(</span><span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span><span class="p">;</span>
+
+            <span class="k">try</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                        <span class="k">where</span> <span class="n">t</span> <span class="p">==</span> <span class="k">null</span>
+                                           <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="p">}</span>
+            <span class="k">catch</span> <span class="p">(</span><span class="n">ArgumentNullException</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;&lt;NULL&gt; has been passed: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks the arguments to ensure they aren&#39;t null, empty or whitespace.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;Some of the arguments are null, empty or whitespace.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">NotNullOrWhiteSpace</span><span class="p">(</span><span class="k">params</span> <span class="n">String</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Boolean</span> <span class="n">faultyArguments</span><span class="p">;</span>
+
+            <span class="k">try</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="p">(</span><span class="k">from</span> <span class="n">t</span> <span class="k">in</span> <span class="n">arguments</span>
+                                   <span class="k">where</span> <span class="n">t</span><span class="p">.</span><span class="n">IsNullOrWhiteSpace</span><span class="p">()</span>
+                                   <span class="k">select</span> <span class="n">t</span><span class="p">).</span><span class="n">Any</span><span class="p">();</span>
+            <span class="p">}</span>
+            <span class="k">catch</span> <span class="p">(</span><span class="n">ArgumentNullException</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">faultyArguments</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">faultyArguments</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;&lt;NULL&gt;, empty or whitespace has been passed: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="n">arguments</span><span class="p">);</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Checks if the start datetime is before the end datetime.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;start&quot;&gt;The start datetime.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;end&quot;&gt;The end datetime.&lt;/param&gt;</span>
+        <span class="c1">///&lt;exception cref=&quot;ArgumentException&quot;&gt;The start datetime is after or equal to end datetime.&lt;/exception&gt;</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">StartBeforeEnd</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">start</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">end</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">start</span><span class="p">.</span><span class="n">IsBefore</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="n">MethodBase</span> <span class="n">methodBase</span> <span class="p">=</span> <span class="n">GetCallingMethod</span><span class="p">();</span>
+                <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;The start datetime is after or equal to end datetime: &quot;</span> <span class="p">+</span>
+                    <span class="n">CreateMethodMessage</span><span class="p">(</span><span class="n">methodBase</span><span class="p">,</span> <span class="k">new</span> <span class="kt">object</span><span class="p">[]</span> <span class="p">{</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="p">});</span>
+
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentException</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Gets the calling method.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="n">MethodBase</span> <span class="nf">GetCallingMethod</span><span class="p">()</span>
+        <span class="p">{</span>
+            <span class="n">MethodBase</span> <span class="n">result</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+            <span class="kt">var</span> <span class="n">currentStackTrace</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StackTrace</span><span class="p">(</span><span class="m">2</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+
+            <span class="kt">int</span> <span class="n">totalFrameCount</span> <span class="p">=</span> <span class="n">currentStackTrace</span><span class="p">.</span><span class="n">FrameCount</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">totalFrameCount</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">result</span> <span class="p">=</span> <span class="n">currentStackTrace</span><span class="p">.</span><span class="n">GetFrame</span><span class="p">(</span><span class="m">0</span><span class="p">).</span><span class="n">GetMethod</span><span class="p">();</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">///&lt;summary&gt;</span>
+        <span class="c1">/// Creates the message.</span>
+        <span class="c1">///&lt;/summary&gt;</span>
+        <span class="c1">///&lt;param name=&quot;methodBase&quot;&gt;The method base.&lt;/param&gt;</span>
+        <span class="c1">///&lt;param name=&quot;arguments&quot;&gt;The arguments.&lt;/param&gt;</span>
+        <span class="c1">///&lt;returns&gt;&lt;/returns&gt;</span>
+        <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">CreateMethodMessage</span><span class="p">(</span><span class="n">MethodBase</span> <span class="n">methodBase</span><span class="p">,</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">builder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">();</span>
+            <span class="kt">var</span> <span class="n">prefix</span> <span class="p">=</span> <span class="n">String</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="n">CultureInfo</span><span class="p">.</span><span class="n">CurrentCulture</span><span class="p">,</span> <span class="s">&quot;Class: {0} - Method: {1} - Args: &quot;</span><span class="p">,</span>
+                <span class="p">!</span><span class="n">methodBase</span><span class="p">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="p">?</span>
+                <span class="n">methodBase</span><span class="p">.</span><span class="n">DeclaringType</span><span class="p">.</span><span class="n">FullName</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="p">!</span><span class="n">methodBase</span><span class="p">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="p">?</span> <span class="n">methodBase</span><span class="p">.</span><span class="n">Name</span> <span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+
+            <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">prefix</span><span class="p">);</span>
+
+            <span class="kt">int</span> <span class="n">paramLength</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+            <span class="kt">bool</span> <span class="n">printArgumentNames</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+            <span class="n">ParameterInfo</span><span class="p">[]</span> <span class="n">methodParameters</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">arguments</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">paramLength</span> <span class="p">=</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">methodBase</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">methodParameters</span> <span class="p">=</span> <span class="n">methodBase</span><span class="p">.</span><span class="n">GetParameters</span><span class="p">();</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">methodParameters</span><span class="p">.</span><span class="n">Length</span> <span class="p">==</span> <span class="n">paramLength</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="n">printArgumentNames</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">arguments</span><span class="p">.</span><span class="n">IsNullOrEmpty</span><span class="p">())</span>
+            <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span><span class="p">&lt;</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span>
+                <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">((</span><span class="n">printArgumentNames</span><span class="p">))</span>
+                    <span class="p">{</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">methodParameters</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">Name</span><span class="p">);</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot; = &quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;[&quot;</span><span class="p">);</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">!=</span> <span class="k">null</span> <span class="p">?</span> <span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ToString</span><span class="p">()</span> <span class="p">:</span> <span class="s">&quot;NULL&quot;</span><span class="p">);</span>
+
+                    <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;]&quot;</span><span class="p">);</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="p">!=</span> <span class="n">arguments</span><span class="p">.</span><span class="n">Length</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span>
+                    <span class="p">{</span>
+                        <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">builder</span><span class="p">.</span><span class="n">Append</span><span class="p">(</span><span class="s">&quot;No arguments&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="n">builder</span><span class="p">.</span><span class="n">ToString</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <p>The code is very easy to use. Here are some sample methods:</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">NullMethod</span><span class="p">(</span><span class="kt">object</span> <span class="n">object1</span><span class="p">,</span> <span class="kt">object</span> <span class="n">object2</span><span class="p">,</span> <span class="kt">object</span> <span class="n">object3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNull</span><span class="p">(</span><span class="n">object1</span><span class="p">,</span> <span class="n">object2</span><span class="p">,</span> <span class="n">object3</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">StringsMethod</span><span class="p">(</span><span class="n">String</span> <span class="n">firstName</span><span class="p">,</span> <span class="n">String</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">String</span> <span class="n">residence</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNullOrWhiteSpace</span><span class="p">(</span><span class="n">firstName</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">residence</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">GuidMethod</span><span class="p">(</span><span class="kt">string</span> <span class="n">firstGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">secondGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">thirdGuid</span><span class="p">,</span> <span class="kt">string</span> <span class="n">fourthGuid</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">ParsableToGuid</span><span class="p">(</span><span class="n">firstGuid</span><span class="p">,</span> <span class="n">secondGuid</span><span class="p">,</span> <span class="n">thirdGuid</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">DateMethod</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">DateInThePast</span><span class="p">(</span><span class="n">dateTime</span><span class="p">,</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">dateTime_3</span><span class="p">);</span>
+
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+</code></pre></div> <p>Because of the <em>params</em> keyword in the methods of the Guard class, it is possible to pass as much parameters to the method as needed.</p> <p>Obviously, it&#39;s also possible to use multiple checks in one method.</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">CombinedMethod</span><span class="p">(</span><span class="n">DateTime</span> <span class="n">dateTime_1</span><span class="p">,</span> <span class="n">DateTime</span> <span class="n">dateTime_2</span><span class="p">,</span> <span class="n">String</span> <span class="n">string_1</span><span class="p">,</span> <span class="n">String</span> <span class="n">string_2</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">DateInThePast</span><span class="p">(</span><span class="n">dateTime_1</span><span class="p">,</span> <span class="n">dateTime_2</span><span class="p">);</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNullOrWhiteSpace</span><span class="p">(</span><span class="n">string_1</span><span class="p">,</span> <span class="n">string_2</span><span class="p">);</span>
+    <span class="c1">//further logic</span>
+<span class="p">}</span>
+</code></pre></div> <p>As for the output, running the following <em>Run</em> method (I am aware of the awkward and rather bad naming, it&#39;s merely to make it obvious how the output will be generated) would throw an exception</p> <div class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">private</span> <span class="k">void</span> <span class="nf">testMethod</span><span class="p">(</span><span class="n">StringBuilder</span> <span class="n">stringBuilder1</span><span class="p">,</span> <span class="n">StringBuilder</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">StringBuilder</span> <span class="n">object3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Helpers</span><span class="p">.</span><span class="n">Guard</span><span class="p">.</span><span class="n">NotNull</span><span class="p">(</span><span class="n">stringBuilder1</span><span class="p">,</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">object3</span><span class="p">);</span>
+
+    <span class="c1">//logic</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">void</span> <span class="nf">Run</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">StringBuilder</span> <span class="n">builder1</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="n">StringBuilder</span> <span class="n">builder2</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+    <span class="n">StringBuilder</span> <span class="n">builder3</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">(</span><span class="s">&quot;, world!&quot;</span><span class="p">);</span>
+
+    <span class="n">testMethod</span><span class="p">(</span><span class="n">builder1</span><span class="p">,</span> <span class="n">builder2</span><span class="p">,</span> <span class="n">builder3</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div> <p>with this message. I&#39;ve split it into several lines for readability. The actual message is in one line:</p> <div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;NULL&gt;</span> has been passed: Class: Thuriot.Tests.GuardTest - Method: testMethod -
+Args: stringBuilder1 = [NULL], builder2 = [Hello], object3 = [, world!]
+</code></pre></div>]]></content:encoded> </item> </channel> </rss>
