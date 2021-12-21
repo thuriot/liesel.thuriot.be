@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<!-- Theme by Steven Thuriot - https://github.com/StevenThuriot/Marbles -->
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    {% if page and page.title != "Home" %}
+    <title>{{ page.title }} &mdash; {{ site.name }}</title>
+    {% else %}
+    <title>{{ site.name }} &mdash; {{ site.description }}</title>
+    {% endif %}
+    <meta name="description" content="{{ site.meta_description }}" />
+    <link rel="canonical" href="{% absolute {{ page.url | remove:'index.html' | strip_slash }} %}">
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	
+    <script type="text/javascript">
+  WebFontConfig = {
+    google: { families: [ 'Montserrat:400,700:latin', 'Lora:700:latin' ] },
+	custom: { families: [ 'FontAwesome' ], urls: [ '//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css'] }  
+  };
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+  })(); </script>
+  
+    {% if site.sidebar %}<meta name="theme-color" content="{{ site.sidebar }}">{% endif %}
+    {% if site.logo %}<link rel="icon" sizes="192x192" href="{{ site.logo }}">{% endif %}
+    <link rel="stylesheet" type="text/css" href="{% absolute /assets/css/screen.css %}" />
+</head>
+<body class="{% if paginator and paginator.page != 1 %}archive-template{% else %}{% if page.templateType %}{{ page.templateType }}{% else %}home{% endif %}-template{% endif %}">
+
+    {{ content | expand_urls: site.url, site.useScheme }}
+
+	<footer class="site-footer clearfix{% if page.subCover %} wide{% endif %}">
+		<section class="copyright"><a href="{% absolute / %}">{{ site.name }}</a> &copy; {{ site.time | date: '%Y' }}</section>
+        <p class="clearfix" />
+        <section class="poweredby"><a href="https://github.com/StevenThuriot/Marbles" target="_blank">Marbles</a> &mdash; Designed with <i class="fa fa-heart"></i> by <a href="https://github.com/StevenThuriot" target="_blank">Steven Thuriot</a></section>
+	</footer>
+
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.1.0/jquery.fitvids.min.js"></script>
+
+	</body>
+</html>

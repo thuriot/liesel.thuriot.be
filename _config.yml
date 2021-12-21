@@ -1,0 +1,51 @@
+markdown: redcarpet
+redcarpet:
+  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "tables", "strikethrough", "superscript", "footnotes"]
+highlighter: pygments
+paginate: 5
+baseurl: /
+permalink: /:title
+paginate_path: "/page/:num/"
+author_dir: author
+category_dir: tag
+
+exclude: [README.md, LICENSE, vendor, Gemfile, deploy.sh]
+
+sass:
+    style: :compressed
+    
+gems:
+  - jekyll-minifier
+
+
+# ########################### #
+# Configure beneath this line #
+# ########################### #
+
+name: Steven Thuriot.be
+description: Thoughts, stories and ideas.
+meta_description: Blogging about things on your new Jekyll site
+url: http://steven.thuriot.be
+
+
+logo: //cdn.thuriot.be/images/Avatars/Raven.jpg
+cover: //cdn.thuriot.be/images/Wall2.png
+
+disqus: thuriot
+
+author: steven
+language: english
+
+useScheme: false
+
+
+#Colors
+sidebar: '#434a4d'
+
+marble: '#33393b'
+marbleHover: '#15b8d6'
+
+currentMarble: '#00bfff'
+currentMarbleHover: '#fff'
+
+# ########################### #
