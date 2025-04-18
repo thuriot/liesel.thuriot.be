@@ -8,12 +8,12 @@ Remove-Item Dockerfile -Force
 Remove-Item commit.ps1 -Force
 
 git init
-git remote add upstream "https://github.com/thuriot/steven.thuriot.be.git"
+git remote add upstream "https://github.com/thuriot/liesel.thuriot.be.git"
 
 git fetch upstream && git reset upstream/gh-pages
 
 Write-Output $null >> .nojekyll
-Write-Output "steven.thuriot.be" > CNAME
+Write-Output "liesel.thuriot.be" > CNAME
 
 git add -A .
 git commit -m "Rebuild pages"
