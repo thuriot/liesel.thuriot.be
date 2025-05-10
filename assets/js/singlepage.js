@@ -1,8 +1,8 @@
 "use strict";
 
 (function () {
-  const articles = document.querySelectorAll("article");
-  const links = document.querySelectorAll("a[href^='#']");
+  const articles = Array.from(document.querySelectorAll("article"));
+  const links = Array.from(document.querySelectorAll("a[href^='#']"));
 
   const updateVisibility = (hash) => {
     const id = hash.substring(1);
@@ -37,13 +37,18 @@
   articles.forEach((article) => {
     article.classList.remove("mb-5");
     article.classList.add("fade-in-up");
-  })
+  });
 
   const defaultId = window.location.hash
     ? window.location.hash
     : "#" + articles[0].id;
 
   updateVisibility(defaultId);
+
+  const defaultLink = links.find((link) => link.getAttribute("href") === defaultId);
+  if (defaultLink) {
+    document.title = defaultLink.textContent + " | Liesel Thuriot";
+  }
 
   window.addEventListener("hashchange", () => {
     updateVisibility(window.location.hash);
