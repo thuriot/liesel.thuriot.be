@@ -8,6 +8,10 @@
 [data-bs-theme="light"] {
   --bs-body-color: #44566c;
   --bs-body-color-rgb: rgb(68, 86, 108);
+  --body-animation-color-1: rgba(155, 110, 151, 1);
+  --body-animation-color-2: rgba(130, 166, 203, 1);
+  --body-animation-color-3: rgba(124, 219, 213, 1);
+  --body-animation-color-4: rgba(219, 100, 219, 1);
 }
 
 .merriweather {
