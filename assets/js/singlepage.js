@@ -45,7 +45,9 @@
 
   updateVisibility(defaultId);
 
-  const defaultLink = links.find((link) => link.getAttribute("href") === defaultId);
+  const defaultLink = links.find(
+    (link) => link.getAttribute("href") === defaultId
+  );
   if (defaultLink) {
     document.title = defaultLink.textContent + " | Liesel Thuriot";
   }

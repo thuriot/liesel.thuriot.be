@@ -8,17 +8,17 @@
 
   const darkModeToggle = document.getElementById("dark-mode-toggle");
 
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme) {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme) {
     setTheme(savedTheme);
     darkModeToggle.checked = savedTheme === "dark";
-} else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
     setTheme("dark");
     darkModeToggle.checked = true;
-} else {
+  } else {
     setTheme("light");
     darkModeToggle.checked = false;
-}
+  }
 
   darkModeToggle.addEventListener("change", () => {
     if (darkModeToggle.checked) {
