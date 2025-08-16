@@ -259,14 +259,14 @@ body,
   height: auto;
 }
 
-#linktree img.linktree-icon {
+.linktree img.linktree-icon {
   max-height: 18.75rem;
   max-width: 100%;
   height: auto;
   width: auto;
 }
 
-#linktree a.list-group-item-action span  {
+.linktree a.list-group-item-action span  {
   margin-right: 4.125rem;
 }
 

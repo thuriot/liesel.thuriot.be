@@ -3,12 +3,12 @@
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
     function updateLastFm() {
+      const anchorId = "lastfm-currently-playing";
+      let lastFmAnchor = document.getElementById(anchorId);
+
       fetch("https://lastfm.thuriot.be")
         .then((response) => response.text())
         .then((svgContent) => {
-          const anchorId = "lastfm-currently-playing";
-          let lastFmAnchor = document.getElementById(anchorId);
-
           if (!lastFmAnchor) {
             lastFmAnchor = document.createElement("a");
 
@@ -25,7 +25,12 @@
 
           lastFmAnchor.innerHTML = svgContent;
         })
-        .catch(console.error);
+        .catch(err => {
+          console.error(err);
+          if (lastFmAnchor) {
+            lastFmAnchor.innerHTML = "";
+          }
+        });
     }
 
     updateLastFm();

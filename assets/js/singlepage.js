@@ -8,7 +8,7 @@
     const id = hash.substring(1);
 
     articles.forEach((article) => {
-      if (article.id === id) {
+      if (article.getAttribute("data-article") === id) {
         article.classList.remove("d-none");
       } else {
         article.classList.add("d-none");
@@ -37,11 +37,13 @@
   articles.forEach((article) => {
     article.classList.remove("mb-5");
     article.classList.add("fade-in-up");
+    article.setAttribute("data-article", article.id);
+    article.removeAttribute("id");
   });
 
   const defaultId = window.location.hash
     ? window.location.hash
-    : "#" + articles[0].id;
+    : "#" + articles[0].getAttribute("data-article");
 
   updateVisibility(defaultId);
 
