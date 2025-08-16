@@ -11,25 +11,16 @@
 
           if (!lastFmAnchor) {
             lastFmAnchor = document.createElement("a");
+
             lastFmAnchor.id = anchorId;
             lastFmAnchor.href = "https://www.last.fm/user/liesel_t";
             lastFmAnchor.target = "_blank";
             lastFmAnchor.rel = "noopener noreferrer";
+
+            lastFmAnchor.className = "position-absolute top-0 end-0 m-2";
             lastFmAnchor.setAttribute("aria-label", "Open Last.fm profile");
 
-            const listItem = document.createElement("li");
-            listItem.className = "list-group-item bg-transparent";
-            listItem.appendChild(lastFmAnchor);
-
-            const darkModeToggleWrapper = document.getElementById(
-              "dark-mode-toggle-wrapper"
-            );
-            if (darkModeToggleWrapper && darkModeToggleWrapper.parentNode) {
-              darkModeToggleWrapper.parentNode.insertBefore(
-                listItem,
-                darkModeToggleWrapper
-              );
-            }
+            document.body.appendChild(lastFmAnchor);
           }
 
           lastFmAnchor.innerHTML = svgContent;
