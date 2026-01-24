@@ -28,20 +28,20 @@
 }
 
 #console-overlay.coffee-theme {
-  --color-primary: #8B6F47;
-  --color-primary-light: #D4A574;
-  --color-error: #C85A54;
-  --color-error-light: #D46B61;
-  --color-hint: #A0826D;
-  --color-echo: #6F4E37;
-  --color-separator: #5C4033;
+  --color-primary: #E8B76F;
+  --color-primary-light: #F4D4A8;
+  --color-error: #D97548;
+  --color-error-light: #E8956A;
+  --color-hint: #D4A86B;
+  --color-echo: #B8860B;
+  --color-separator: #8B7355;
   
-  --glow-primary-1: rgba(139, 111, 71, 0.1);
-  --glow-primary-2: rgba(139, 111, 71, 0.15);
-  --glow-primary-3: rgba(139, 111, 71, 0.2);
-  --glow-primary-4: rgba(139, 111, 71, 0.5);
-  --glow-primary-5: rgba(139, 111, 71, 0.6);
-  --glow-primary-6: rgba(139, 111, 71, 0.7);
+  --glow-primary-1: rgba(232, 183, 111, 0.1);
+  --glow-primary-2: rgba(232, 183, 111, 0.15);
+  --glow-primary-3: rgba(232, 183, 111, 0.2);
+  --glow-primary-4: rgba(232, 183, 111, 0.5);
+  --glow-primary-5: rgba(232, 183, 111, 0.6);
+  --glow-primary-6: rgba(232, 183, 111, 0.7);
 }
 
 .text-default {
