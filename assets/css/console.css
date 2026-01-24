@@ -1,12 +1,88 @@
 @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 
-/* --- 1. Glitch Button Styles --- */
+:root {
+  --color-primary: #00ff41;
+  --color-primary-light: #00dfff;
+  --color-error: #ff3e3e;
+  --color-error-light: #ff3b3b;
+  --color-hint: #ffb400;
+  --color-echo: #008f11;
+  --color-separator: #444;
+  --color-black: #000;
+  --color-red-glitch: #ff0000;
+  --color-cyan-glitch: #00ffff;
+  
+  --glow-primary-1: rgba(0, 255, 65, 0.1);
+  --glow-primary-2: rgba(0, 255, 65, 0.15);
+  --glow-primary-3: rgba(0, 255, 65, 0.2);
+  --glow-primary-4: rgba(0, 255, 65, 0.5);
+  --glow-primary-5: rgba(0, 255, 65, 0.6);
+  --glow-primary-6: rgba(0, 255, 65, 0.7);
+  --glow-error: rgba(255, 0, 0, 0.5);
+  --glow-text-white: rgba(255, 255, 255, 0.4);
+  --glow-scan-dark: rgba(0, 0, 0, 0.2);
+  --glow-scan-line: rgba(18, 16, 16, 0);
+  --glow-chromatic-red: rgba(255, 0, 0, 0.03);
+  --glow-chromatic-green: rgba(0, 255, 0, 0.01);
+  --glow-chromatic-blue: rgba(0, 0, 255, 0.03);
+}
+
+#console-overlay.coffee-theme {
+  --color-primary: #8B6F47;
+  --color-primary-light: #D4A574;
+  --color-error: #C85A54;
+  --color-error-light: #D46B61;
+  --color-hint: #A0826D;
+  --color-echo: #6F4E37;
+  --color-separator: #5C4033;
+  
+  --glow-primary-1: rgba(139, 111, 71, 0.1);
+  --glow-primary-2: rgba(139, 111, 71, 0.15);
+  --glow-primary-3: rgba(139, 111, 71, 0.2);
+  --glow-primary-4: rgba(139, 111, 71, 0.5);
+  --glow-primary-5: rgba(139, 111, 71, 0.6);
+  --glow-primary-6: rgba(139, 111, 71, 0.7);
+}
+
+.text-default {
+  color: var(--color-primary);
+  text-shadow: 0 0 5px var(--glow-primary-4);
+}
+
+.text-error {
+  color: var(--color-error);
+  text-shadow: 0 0 10px var(--glow-error);
+  font-weight: bold;
+}
+
+.text-command {
+  color: var(--color-primary);
+  font-weight: bold;
+  text-shadow: 0 0 5px var(--glow-primary-6);
+}
+
+.text-hint {
+  color: var(--color-hint);
+}
+
+.text-cyan {
+  color: var(--color-primary-light);
+}
+
+.text-separator {
+  color: var(--color-separator);
+}
+
+.text-echo {
+  color: var(--color-echo);
+}
+
 .glitch-link {
   position: relative;
   color: white;
   text-decoration: none;
   display: inline-block;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 10px var(--glow-text-white);
   animation: flicker 4s infinite;
 }
 
@@ -23,18 +99,17 @@
 }
 
 .glitch-link::before {
-  color: #ff0000;
+  color: var(--color-red-glitch);
   z-index: -1;
   animation: glitch-smooth 3s infinite;
 }
 
 .glitch-link::after {
-  color: #00ffff;
+  color: var(--color-cyan-glitch);
   z-index: -2;
   animation: glitch-smooth 3s infinite 0.1s;
 }
 
-/* --- 2. Website Main Container States --- */
 main.site-blip-out {
   animation: tv-blip-out 0.5s ease-in forwards !important;
   pointer-events: none;
@@ -44,21 +119,20 @@ main.site-warm-up {
   animation: tv-power-on 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards !important;
 }
 
-/* --- 3. The Console Overlay --- */
 #console-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000;
+  background: var(--color-black);
   z-index: 99999;
   display: none;
   flex-direction: column;
   padding: 2rem;
   box-sizing: border-box;
   font-family: "Share Tech Mono", monospace;
-  color: #00ff41;
+  color: var(--color-primary);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -71,7 +145,6 @@ main.site-warm-up {
   animation: tv-blip-out 0.5s ease-in forwards;
 }
 
-/* --- 4. CRT Effects --- */
 .scanlines {
   position: fixed;
   top: 0;
@@ -81,12 +154,12 @@ main.site-warm-up {
   pointer-events: none;
   z-index: 100000;
   background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+    linear-gradient(var(--glow-scan-line) 50%, var(--glow-scan-dark) 50%),
     linear-gradient(
       90deg,
-      rgba(255, 0, 0, 0.03),
-      rgba(0, 255, 0, 0.01),
-      rgba(0, 0, 255, 0.03)
+      var(--glow-chromatic-red),
+      var(--glow-chromatic-green),
+      var(--glow-chromatic-blue)
     );
   background-size:
     100% 3px,
@@ -96,16 +169,16 @@ main.site-warm-up {
 
 #log p {
   margin: 5px 0;
-  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  text-shadow: 0 0 5px var(--glow-primary-4);
   line-height: 1.4;
   white-space: pre-wrap;
 }
 
 #log a {
-  color: #00ff41;
+  color: var(--color-primary);
   text-decoration: underline;
   cursor: pointer;
-  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  text-shadow: 0 0 5px var(--glow-primary-4);
 }
 
 #log a.icon-link {
@@ -114,14 +187,14 @@ main.site-warm-up {
 }
 
 #log a:hover {
-  background: #00ff41;
-  color: #000;
+  background: var(--color-primary);
+  color: var(--color-black);
 }
 
 #terminal-input {
   background: transparent;
   border: none;
-  color: #00ff41;
+  color: var(--color-primary);
   font-family: inherit;
   font-size: 1rem;
   outline: none;
@@ -129,7 +202,6 @@ main.site-warm-up {
   margin-left: 0.5rem;
 }
 
-/* --- 5. Keyframes --- */
 @keyframes tv-blip-out {
   0% {
     clip-path: inset(0% 0% 0% 0%);
@@ -248,22 +320,20 @@ main.site-warm-up {
   }
 }
 
-/* --- TERMINAL MODAL CONTAINER --- */
 .terminal-modal {
   background: rgba(0, 20, 0, 0.98);
-  border: 1px solid #00ff41;
+  border: 1px solid var(--color-primary);
   margin: 20px auto;
   width: 100%;
   max-width: 450px;
-  box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 30px var(--glow-primary-2);
   position: relative;
   z-index: 100;
 }
 
-/* --- MODAL HEADER --- */
 .modal-header {
-  background: #00ff41;
-  color: #000;
+  background: var(--color-primary);
+  color: var(--color-black);
   padding: 6px 12px;
   display: flex;
   justify-content: space-between;
@@ -279,13 +349,12 @@ main.site-warm-up {
   animation: terminal-blink 1s infinite;
 }
 
-/* --- MODAL CONTENT --- */
 .modal-body {
   padding: 25px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #00ff41;
+  color: var(--color-primary);
 }
 
 /* --- SVG AVATAR STYLING --- */
@@ -299,10 +368,9 @@ main.site-warm-up {
   font-size: 1.5rem;
   margin: 5px 0;
   text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+  text-shadow: 0 0 8px var(--glow-primary-5);
 }
 
-/* Cleaning up the sidebar info rows (Date, Location, etc.) */
 .modal-body ul {
   list-style: none;
   padding: 0;
@@ -312,20 +380,18 @@ main.site-warm-up {
 
 .modal-body li {
   padding: 8px 0;
-  border-bottom: 1px Array solid rgba(0, 255, 65, 0.2);
+  border-bottom: 1px solid var(--glow-primary-3);
   font-size: 0.85rem;
   display: flex;
   justify-content: space-between;
 }
 
-/* Hide the 'Dark Mode' text specifically if it survived the JS remove */
 .modal-body .theme-toggle,
 .modal-body .dark-mode-text,
 .modal-body label {
   display: none !important;
 }
 
-/* --- RETRO ANIMATIONS --- */
 @keyframes terminal-blink {
   0%,
   100% {
@@ -351,7 +417,6 @@ main.site-warm-up {
   animation: modal-slide-up 0.4s ease-out;
 }
 
-/* --- BALANCED TECH GLITCH --- */
 .tech-glitch {
   position: relative;
   animation: tech-stutter 4s infinite;
@@ -371,11 +436,11 @@ main.site-warm-up {
   /* Sudden Pulse */
   90% {
     transform: translateX(2px);
-    filter: hue-rotate(15deg) brightness(1.2); /* Subtle shift toward cyan */
+    filter: hue-rotate(15deg) brightness(1.2);
   }
   92% {
     transform: translateX(-2px);
-    filter: hue-rotate(-5deg); /* Slight shift toward yellow-green */
+    filter: hue-rotate(-5deg);
   }
   94% {
     transform: translateX(1px);
@@ -383,16 +448,13 @@ main.site-warm-up {
   }
 }
 
-/* --- EYE-SAFE VHS DISTORTION --- */
 .vhs-stable {
   position: relative;
   background: rgba(0, 15, 0, 0.98);
-  border: 1px solid #00ff41;
-  /* Static chromatic aberration - no movement on these */
+  border: 1px solid var(--color-primary);
   text-shadow:
     -0.5px 0 1px rgba(255, 0, 0, 0.5),
     0.5px 0 1px rgba(0, 0, 255, 0.5);
-  /* The animation duration is long to prevent eye strain */
   animation: signal-twitch 4s infinite;
 }
 
@@ -434,7 +496,7 @@ main.site-warm-up {
   left: 0;
   width: 100%;
   height: 4px;
-  background: rgba(0, 255, 65, 0.1);
+  background: var(--glow-primary-1);
   opacity: 0.3;
   pointer-events: none;
   animation: scanline-pass 8s linear infinite;
@@ -449,24 +511,21 @@ main.site-warm-up {
   }
 }
 
-/* Profile Picture: Soft CRT Glow */
 .modal-body img {
   filter: sepia(100%) hue-rotate(90deg) brightness(1.1) contrast(1.1);
-  border: 1px solid #00ff41;
-  /* Breathing effect instead of vibration */
+  border: 1px solid var(--color-primary);
   animation: breathing-glow 3s infinite alternate ease-in-out;
 }
 
 @keyframes breathing-glow {
   from {
-    box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 5px var(--glow-primary-3);
   }
   to {
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+    box-shadow: 0 0 15px var(--glow-primary-4);
   }
 }
 
-/* --- FAST DIGITAL SNAP ENTRANCE --- */
 .blip-entrance {
   /* 0.2s makes it feel like a quick hardware flicker */
   animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
@@ -478,7 +537,7 @@ main.site-warm-up {
   0% {
     opacity: 0;
     transform: scaleX(2) scaleY(0.01);
-    filter: brightness(10) hue-rotate(160deg); /* Blue-ish flash */
+    filter: brightness(10) hue-rotate(160deg);
   }
   50% {
     opacity: 1;
@@ -492,17 +551,16 @@ main.site-warm-up {
   }
 }
 
-/* --- NOTIFICATION DOT --- */
 .nav-notification-dot {
   position: absolute;
   top: 8px;
   right: -5px;
   width: 6px;
   height: 6px;
-  background-color: #00dfff; /* Cyan-blue to match the twitch */
+  background-color: var(--color-primary-light);
   border-radius: 50%;
   z-index: 10;
-  box-shadow: 0 0 10px #00dfff;
+  box-shadow: 0 0 10px var(--color-primary-light);
 }
 
 /* The Sonar Pulse */
@@ -513,7 +571,7 @@ main.site-warm-up {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  border: 1px solid #00dfff;
+  border: 1px solid var(--color-primary-light);
   border-radius: 50%;
   animation: sonar-pulse 1.5s infinite;
 }
@@ -529,22 +587,19 @@ main.site-warm-up {
   }
 }
 
-/* Ensure the dot appears with the blip */
 .blip-entrance .nav-notification-dot {
   animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
 .command {
-  color: #00ff41; /* High-contrast terminal green */
+  color: var(--color-primary);
   font-weight: bold;
-  text-shadow: 0 0 5px rgba(0, 255, 65, 0.7);
+  text-shadow: 0 0 5px var(--glow-primary-6);
   margin-right: 5px;
 }
 
-/* --- CRT OVERLOAD STYLING --- */
 .system-breach {
   animation: crt-jitter 0.1s infinite;
-  /* Massive brightness spike instead of inversion */
   filter: brightness(3) contrast(1.5) sepia(0.5) hue-rotate(-20deg);
   background-color: #051a05 !important;
 }
@@ -571,10 +626,9 @@ main.site-warm-up {
   }
 }
 
-/* Subtle red "Access Denied" look for the text */
 .error {
-  color: #ff3b3b;
-  text-shadow: 0 0 10px #ff0000;
+  color: var(--color-error);
+  text-shadow: 0 0 10px var(--glow-error);
   font-weight: bold;
   display: block;
   margin: 5px 0;

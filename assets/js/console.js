@@ -38,9 +38,6 @@
       noise.start();
     },
 
-    /**
-     * Internal Helper: Simple Oscillator Tone
-     */
     _tone(freq, duration, volume, type = "sine", rampEndFreq = null) {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -178,21 +175,22 @@
     "linkedin",
     "whoami",
     "sudo",
+    "coffee",
   ];
   const BOOT_LINES = [
-    //"ERR: SIGNAL INTERFERENCE DETECTED...",
-    //"BYPASSING SECURITY PROTOCOLS...",
-    //"MOUNTING VIRTUAL_FILE_SYSTEM...",
-    //"SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
-    //"TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
+    "ERR: SIGNAL INTERFERENCE DETECTED...",
+    "BYPASSING SECURITY PROTOCOLS...",
+    "MOUNTING VIRTUAL_FILE_SYSTEM...",
+    "SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
+    "TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
   ];
 
   async function startTransition() {
     const siteMain = document.querySelector("main.container");
     if (!siteMain) return;
 
-    SoundManager.init(); // Resumes/Starts the audio engine
-    SoundManager.playPowerOn(); // Optional power-on thrum
+    SoundManager.init();
+    SoundManager.playPowerOn();
 
     siteMain.classList.add("site-blip-out");
 
@@ -208,7 +206,6 @@
       overlay.style.display = "flex";
       overlay.classList.add("active");
 
-      // We keep the flicker for a very short burst to simulate the tube warming up
       overlay.classList.add("signal-loss");
 
       setTimeout(() => {
@@ -268,7 +265,7 @@
           if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) {
             const t = node.innerText.trim();
             if (t) contentParts.push(t);
-            return; // headings are atomic
+            return;
           }
 
           if (tag === "p") {
@@ -296,7 +293,6 @@
             return;
           }
 
-          // otherwise traverse children in order
           for (const child of Array.from(node.childNodes)) traverse(child);
         }
       }
@@ -314,7 +310,6 @@
 
       return { name, title, excerpt, content, size, anchor };
     });
-    // sort alphabetically by title for predictable listing
     virtualFS.sort((a, b) => a.title.localeCompare(b.title));
   }
 
@@ -322,7 +317,6 @@
     const log = document.getElementById("log");
     for (const line of BOOT_LINES) {
       const p = document.createElement("p");
-      p.style.color = "#00ff41";
       log.appendChild(p);
       for (const char of line) {
         p.textContent += char;
@@ -360,10 +354,8 @@
     if (!content) return "";
     let out = escapeHtml(content);
 
-    // convert markdown-like headings
     out = out.replace(/^#\s+(.+)$/gm, "<h2>$1</h2>");
 
-    // convert 'text -> https://...' patterns into anchors
     out = out.replace(
       /([^\n]+?)\s*->\s*(https?:\/\/\S+)/g,
       function (_, text, url) {
@@ -371,12 +363,10 @@
       },
     );
 
-    // convert bare URLs
     out = out.replace(/(https?:\/\/\S+)/g, function (_, url) {
       return `<a href="${url}" target="_blank" rel="noopener">${url}</a>`;
     });
 
-    // preserve paragraphs/line breaks
     out = out.replace(/\n\n+/g, "<br><br>").replace(/\n/g, "<br>");
     return out;
   }
@@ -400,15 +390,15 @@
     const log = document.getElementById("log");
     const [cmd, ...args] = input.toLowerCase().trim().split(/\s+/);
 
-    const print = (text, isHtml = false, color = "#00ff41") => {
+    const print = (text, isHtml = false, className = "text-default") => {
       const p = document.createElement("p");
-      p.style.color = color;
+      p.classList.add(className);
       if (isHtml) p.innerHTML = text;
       else p.textContent = text;
       log.appendChild(p);
     };
 
-    print(`guest@system:~$ ${input}`, false, "#008f11");
+    print(`guest@system:~$ ${input}`, false, "text-echo");
 
     switch (cmd) {
       case "ls":
@@ -438,28 +428,30 @@
 
       case "cat":
         if (!args[0]) {
-          print("USAGE: CAT [FILENAME]", false, "#ffb400");
+          print("USAGE: CAT [FILENAME]", false, "text-hint");
           break;
         }
         const q = args[0].toLowerCase();
-        const target = virtualFS.find(
-          (f) =>
-            f.name === q ||
-            f.name === `${q}.md` ||
-            f.name.replace(/\.md$/, "") === q ||
-            f.name.startsWith(q),
-        );
+        const target = virtualFS.find((f) => f.name === q);
         if (target) {
-          print("------------------------------------", false, "#444");
+          print(
+            "------------------------------------",
+            false,
+            "text-separator",
+          );
           const titleHtml = `<a href="${target.anchor}" target="_self">${escapeHtml(target.title)}</a>`;
-          print(titleHtml, true, "#00dfff");
+          print(titleHtml, true, "text-cyan");
           const contentHtml = renderContentHtml(
             target.content || target.excerpt || "",
           );
           print(contentHtml, true);
-          print("------------------------------------", false, "#444");
+          print(
+            "------------------------------------",
+            false,
+            "text-separator",
+          );
         } else {
-          print(`FILE NOT FOUND: ${args[0]}`, false, "#ff3e3e");
+          print(`FILE NOT FOUND: ${args[0]}`, false, "text-error");
         }
         break;
 
@@ -489,11 +481,10 @@
         const inputCont = document.getElementById("input-container");
 
         if (sidebar) {
-          inputCont.style.display = "none"; // Blocks the terminal
+          inputCont.style.display = "none";
 
           const clone = sidebar.cloneNode(true);
 
-          // Purge UI elements but keep the .avatar SVG
           const purgeList = [
             "#dark-mode-toggle",
             ".dark-mode-toggle",
@@ -520,7 +511,7 @@
           const exitModal = (e) => {
             if (e) e.preventDefault();
             modal.remove();
-            inputCont.style.display = "flex"; // Restores terminal
+            inputCont.style.display = "flex";
             document.getElementById("terminal-input").focus();
             window.removeEventListener("keydown", exitModal);
           };
@@ -535,7 +526,6 @@
         break;
 
       case "clear":
-        // Clears the entire log div to reset the view
         document.getElementById("log").innerHTML = "";
         break;
 
@@ -543,13 +533,19 @@
         SoundManager.playError();
         document.body.classList.add("system-breach");
 
-        print("<span class='error'>[ ACCESS DENIED ]</span>", true);
+        print(
+          "<span class='error'>[ ACCESS DENIED ]</span>",
+          true,
+          "text-error",
+        );
         print(
           "<span class='error'>PRIVILEGE ESCALATION IS DISABLED FOR GUEST_NODE</span>",
           true,
+          "text-error",
         );
 
         setTimeout(() => {
+          document.getElementById("log").innerHTML = "";
           document.body.classList.remove("system-breach");
           print("Unauthorized 'sudo' attempts have been logged.");
           print("System stabilized. Ready for next command.");
@@ -615,24 +611,45 @@
         }, 1200);
         break;
 
+      case "coffee":
+        const overlay2 = document.getElementById("console-overlay");
+        const isCoffeeTheme = overlay2.classList.contains("coffee-theme");
+        if (isCoffeeTheme) {
+          overlay2.classList.remove("coffee-theme");
+          print("COFFEE MODE DISABLED. RETURNING TO TERMINAL GREEN.", false);
+        } else {
+          overlay2.classList.add("coffee-theme");
+          print(
+            "COFFEE MODE ENABLED. BREWING A WARM INTERFACE...",
+            false,
+            "text-hint",
+          );
+        }
+        break;
+
       default:
-        print(`UNKNOWN COMMAND: ${cmd}`, false, "#ff3e3e");
+        print(`UNKNOWN COMMAND: ${cmd}`, false, "text-error");
     }
-    
+
     const ov = document.getElementById("console-overlay");
-    ov.scrollTo({ top: ov.scrollHeight, behavior: 'smooth' });
+    ov.scrollTo({ top: ov.scrollHeight, behavior: "smooth" });
   }
 
   function setupEventListeners() {
     const input = document.getElementById("terminal-input");
+    const playInputSound = (type = "key") => {
+      if (type === "enter") SoundManager.playEnter();
+      else SoundManager.playKey();
+    };
+
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        SoundManager.playEnter();
+        playInputSound("enter");
         const val = e.target.value;
         if (val) processCommand(val);
         e.target.value = "";
       } else if (e.key === "Tab") {
-        SoundManager.playKey();
+        playInputSound("key");
         e.preventDefault();
         handleTabCompletion(input);
       } else if (
@@ -640,7 +657,7 @@
         e.key === "Backspace" ||
         e.key === "Delete"
       ) {
-        SoundManager.playKey();
+        playInputSound("key");
       }
     });
     document.getElementById("console-overlay").addEventListener("click", () => {
@@ -653,7 +670,6 @@
     if (!navContainer) return;
 
     setTimeout(() => {
-      // Inject the link with a nested notification dot
       const html = `
       <li class="nav-item blip-entrance" style="position: relative;">
         <div class="nav-notification-dot"></div>
@@ -673,7 +689,7 @@
         if (dot) dot.remove();
         startTransition();
       };
-    }, 1);
+    }, 5000);
   }
 
   appendCss();
