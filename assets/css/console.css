@@ -1,0 +1,581 @@
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
+
+/* --- 1. Glitch Button Styles --- */
+.glitch-link {
+  position: relative;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  animation: flicker 4s infinite;
+}
+
+.glitch-link::before,
+.glitch-link::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  opacity: 0;
+}
+
+.glitch-link::before {
+  color: #ff0000;
+  z-index: -1;
+  animation: glitch-smooth 3s infinite;
+}
+
+.glitch-link::after {
+  color: #00ffff;
+  z-index: -2;
+  animation: glitch-smooth 3s infinite 0.1s;
+}
+
+/* --- 2. Website Main Container States --- */
+main.site-blip-out {
+  animation: tv-blip-out 0.5s ease-in forwards !important;
+  pointer-events: none;
+}
+
+main.site-warm-up {
+  animation: tv-power-on 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards !important;
+}
+
+/* --- 3. The Console Overlay --- */
+#console-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 99999;
+  display: none;
+  flex-direction: column;
+  padding: 2rem;
+  box-sizing: border-box;
+  font-family: "Share Tech Mono", monospace;
+  color: #00ff41;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#console-overlay.active {
+  display: flex;
+}
+
+#console-overlay.exit {
+  animation: tv-blip-out 0.5s ease-in forwards;
+}
+
+/* --- 4. CRT Effects --- */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100000;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.03),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.03)
+    );
+  background-size:
+    100% 3px,
+    3px 100%;
+  animation: flicker-lines 0.15s infinite;
+}
+
+#log p {
+  margin: 5px 0;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+#log a {
+  color: #00ff41;
+  text-decoration: underline;
+  cursor: pointer;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+#log a.icon-link {
+  line-height: 1em;
+  padding: 2px;
+}
+
+#log a:hover {
+  background: #00ff41;
+  color: #000;
+}
+
+#terminal-input {
+  background: transparent;
+  border: none;
+  color: #00ff41;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  margin-left: 0.5rem;
+}
+
+/* --- 5. Keyframes --- */
+@keyframes tv-blip-out {
+  0% {
+    clip-path: inset(0% 0% 0% 0%);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  40% {
+    clip-path: inset(49.8% 0% 49.8% 0%);
+    filter: brightness(10);
+    opacity: 1;
+  }
+  80% {
+    clip-path: inset(49.8% 49.8% 49.8% 49.8%);
+    filter: brightness(50);
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(50% 50% 50% 50%);
+    filter: brightness(100);
+    opacity: 0;
+  }
+}
+
+@keyframes tv-power-on {
+  0% {
+    clip-path: inset(50% 50% 50% 50%);
+    opacity: 1;
+    filter: brightness(10);
+  }
+  40% {
+    clip-path: inset(49.8% 0% 49.8% 0%);
+    opacity: 1;
+    filter: brightness(2);
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 0%);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes glitch-smooth {
+  0%,
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+  91% {
+    opacity: 1;
+    transform: translate(-10px, -2px);
+    clip-path: inset(10% 0 80% 0);
+    filter: blur(1px);
+  }
+  93% {
+    transform: translate(10px, 2px);
+    clip-path: inset(60% 0 10% 0);
+  }
+  95% {
+    opacity: 1;
+    transform: translate(-5px, 5px);
+    clip-path: inset(40% 0 40% 0);
+    filter: blur(0px);
+  }
+  97% {
+    transform: translate(0);
+    clip-path: inset(80% 0 5% 0);
+  }
+}
+
+@keyframes flicker {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes flicker-lines {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.signal-loss {
+  animation: static-flicker 0.15s steps(2) infinite;
+}
+
+@keyframes static-flicker {
+  0% {
+    opacity: 0.9;
+    filter: brightness(1.2) contrast(1.1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1) contrast(1);
+  }
+  100% {
+    opacity: 0.95;
+    filter: brightness(1.1) contrast(1.05);
+  }
+}
+
+/* --- TERMINAL MODAL CONTAINER --- */
+.terminal-modal {
+  background: rgba(0, 20, 0, 0.98);
+  border: 1px solid #00ff41;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+  position: relative;
+  z-index: 100;
+}
+
+/* --- MODAL HEADER --- */
+.modal-header {
+  background: #00ff41;
+  color: #000;
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.modal-close {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  animation: terminal-blink 1s infinite;
+}
+
+/* --- MODAL CONTENT --- */
+.modal-body {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #00ff41;
+}
+
+/* --- SVG AVATAR STYLING --- */
+.modal-body .avatar {
+  /* Apply the phosphor green filter to the entire SVG */
+  filter: sepia(100%) hue-rotate(90deg) brightness(1.1) contrast(1.1);
+}
+
+.modal-body h1,
+.modal-body h2 {
+  font-size: 1.5rem;
+  margin: 5px 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+}
+
+/* Cleaning up the sidebar info rows (Date, Location, etc.) */
+.modal-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  width: 100%;
+}
+
+.modal-body li {
+  padding: 8px 0;
+  border-bottom: 1px Array solid rgba(0, 255, 65, 0.2);
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Hide the 'Dark Mode' text specifically if it survived the JS remove */
+.modal-body .theme-toggle,
+.modal-body .dark-mode-text,
+.modal-body label {
+  display: none !important;
+}
+
+/* --- RETRO ANIMATIONS --- */
+@keyframes terminal-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.terminal-modal {
+  animation: modal-slide-up 0.4s ease-out;
+}
+
+/* --- BALANCED TECH GLITCH --- */
+.tech-glitch {
+  position: relative;
+  animation: tech-stutter 4s infinite;
+}
+
+@keyframes tech-stutter {
+  /* Stable State */
+  0%,
+  89%,
+  91%,
+  93%,
+  95%,
+  100% {
+    transform: translateX(0);
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  /* Sudden Pulse */
+  90% {
+    transform: translateX(2px);
+    filter: hue-rotate(15deg) brightness(1.2); /* Subtle shift toward cyan */
+  }
+  92% {
+    transform: translateX(-2px);
+    filter: hue-rotate(-5deg); /* Slight shift toward yellow-green */
+  }
+  94% {
+    transform: translateX(1px);
+    filter: hue-rotate(5deg) brightness(1.1);
+  }
+}
+
+/* --- EYE-SAFE VHS DISTORTION --- */
+.vhs-stable {
+  position: relative;
+  background: rgba(0, 15, 0, 0.98);
+  border: 1px solid #00ff41;
+  /* Static chromatic aberration - no movement on these */
+  text-shadow:
+    -0.5px 0 1px rgba(255, 0, 0, 0.5),
+    0.5px 0 1px rgba(0, 0, 255, 0.5);
+  /* The animation duration is long to prevent eye strain */
+  animation: signal-twitch 4s infinite;
+}
+
+@keyframes signal-twitch {
+  /* 0% to 92%: Stable Green State */
+  0%,
+  92%,
+  100% {
+    transform: translateX(0) skewX(0deg);
+    filter: hue-rotate(0deg) brightness(1);
+    clip-path: inset(0 0 0 0);
+  }
+  /* 93%: Sharp Blue-Shift Twitch */
+  93% {
+    transform: translateX(4px) skewX(1deg);
+    /* Rotating ~160deg shifts green toward cyan/blue */
+    filter: hue-rotate(160deg) brightness(1.3);
+    clip-path: inset(30% 0 60% 0);
+  }
+  /* 95%: Counter-Jitter */
+  95% {
+    transform: translateX(-4px) skewX(-1deg);
+    filter: hue-rotate(180deg) brightness(1.1);
+    clip-path: inset(60% 0 10% 0);
+  }
+  /* 97%: Recovery */
+  97% {
+    transform: translateX(1px);
+    filter: hue-rotate(0deg);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Subtle, slow-moving scanline instead of a fast blink */
+.vhs-stable::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 65, 0.1);
+  opacity: 0.3;
+  pointer-events: none;
+  animation: scanline-pass 8s linear infinite;
+}
+
+@keyframes scanline-pass {
+  0% {
+    top: -5%;
+  }
+  100% {
+    top: 105%;
+  }
+}
+
+/* Profile Picture: Soft CRT Glow */
+.modal-body img {
+  filter: sepia(100%) hue-rotate(90deg) brightness(1.1) contrast(1.1);
+  border: 1px solid #00ff41;
+  /* Breathing effect instead of vibration */
+  animation: breathing-glow 3s infinite alternate ease-in-out;
+}
+
+@keyframes breathing-glow {
+  from {
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+  }
+}
+
+/* --- FAST DIGITAL SNAP ENTRANCE --- */
+.blip-entrance {
+  /* 0.2s makes it feel like a quick hardware flicker */
+  animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+  opacity: 0;
+  transform-origin: center;
+}
+
+@keyframes fast-blip {
+  0% {
+    opacity: 0;
+    transform: scaleX(2) scaleY(0.01);
+    filter: brightness(10) hue-rotate(160deg); /* Blue-ish flash */
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(0.5) scaleY(1.5);
+    filter: brightness(2) hue-rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1) scaleY(1);
+    filter: brightness(1);
+  }
+}
+
+/* --- NOTIFICATION DOT --- */
+.nav-notification-dot {
+  position: absolute;
+  top: 8px;
+  right: -5px;
+  width: 6px;
+  height: 6px;
+  background-color: #00dfff; /* Cyan-blue to match the twitch */
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 0 10px #00dfff;
+}
+
+/* The Sonar Pulse */
+.nav-notification-dot::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 1px solid #00dfff;
+  border-radius: 50%;
+  animation: sonar-pulse 1.5s infinite;
+}
+
+@keyframes sonar-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* Ensure the dot appears with the blip */
+.blip-entrance .nav-notification-dot {
+  animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+.command {
+  color: #00ff41; /* High-contrast terminal green */
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.7);
+  margin-right: 5px;
+}
+
+/* --- CRT OVERLOAD STYLING --- */
+.system-breach {
+  animation: crt-jitter 0.1s infinite;
+  /* Massive brightness spike instead of inversion */
+  filter: brightness(3) contrast(1.5) sepia(0.5) hue-rotate(-20deg);
+  background-color: #051a05 !important;
+}
+
+@keyframes crt-jitter {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px) skewX(5deg);
+  }
+  40% {
+    transform: translateX(5px) skewX(-5deg);
+  }
+  60% {
+    transform: translateX(-2px);
+    filter: brightness(5);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Subtle red "Access Denied" look for the text */
+.error {
+  color: #ff3b3b;
+  text-shadow: 0 0 10px #ff0000;
+  font-weight: bold;
+  display: block;
+  margin: 5px 0;
+}
