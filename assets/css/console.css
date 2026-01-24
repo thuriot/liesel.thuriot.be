@@ -4,14 +4,13 @@
   --color-primary: #00ff41;
   --color-primary-light: #00dfff;
   --color-error: #ff3e3e;
-  --color-error-light: #ff3b3b;
   --color-hint: #ffb400;
   --color-echo: #008f11;
   --color-separator: #444;
   --color-black: #000;
   --color-red-glitch: #ff0000;
   --color-cyan-glitch: #00ffff;
-  
+
   --glow-primary-1: rgba(0, 255, 65, 0.1);
   --glow-primary-2: rgba(0, 255, 65, 0.15);
   --glow-primary-3: rgba(0, 255, 65, 0.2);
@@ -28,14 +27,13 @@
 }
 
 #console-overlay.coffee-theme {
-  --color-primary: #E8B76F;
-  --color-primary-light: #F4D4A8;
-  --color-error: #D97548;
-  --color-error-light: #E8956A;
-  --color-hint: #D4A86B;
-  --color-echo: #B8860B;
-  --color-separator: #8B7355;
-  
+  --color-primary: #e8b76f;
+  --color-primary-light: #f4d4a8;
+  --color-error: #d97548;
+  --color-hint: #d4a86b;
+  --color-echo: #b8860b;
+  --color-separator: #8b7355;
+
   --glow-primary-1: rgba(232, 183, 111, 0.1);
   --glow-primary-2: rgba(232, 183, 111, 0.15);
   --glow-primary-3: rgba(232, 183, 111, 0.2);
@@ -55,12 +53,6 @@
   font-weight: bold;
 }
 
-.text-command {
-  color: var(--color-primary);
-  font-weight: bold;
-  text-shadow: 0 0 5px var(--glow-primary-6);
-}
-
 .text-hint {
   color: var(--color-hint);
 }
@@ -75,6 +67,13 @@
 
 .text-echo {
   color: var(--color-echo);
+}
+
+.text-command {
+  color: var(--color-primary);
+  font-weight: bold;
+  text-shadow: 0 0 5px var(--glow-primary-6);
+  margin-right: 5px;
 }
 
 .glitch-link {
@@ -181,14 +180,14 @@ main.site-warm-up {
   text-shadow: 0 0 5px var(--glow-primary-4);
 }
 
-#log a.icon-link {
-  line-height: 1em;
-  padding: 2px;
-}
-
 #log a:hover {
   background: var(--color-primary);
   color: var(--color-black);
+}
+
+#log a.icon-link {
+  line-height: 1em;
+  padding: 2px;
 }
 
 #terminal-input {
@@ -320,6 +319,16 @@ main.site-warm-up {
   }
 }
 
+@keyframes terminal-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 .terminal-modal {
   background: rgba(0, 20, 0, 0.98);
   border: 1px solid var(--color-primary);
@@ -357,9 +366,7 @@ main.site-warm-up {
   color: var(--color-primary);
 }
 
-/* --- SVG AVATAR STYLING --- */
 .modal-body .avatar {
-  /* Apply the phosphor green filter to the entire SVG */
   filter: sepia(100%) hue-rotate(90deg) brightness(1.1) contrast(1.1);
 }
 
@@ -386,66 +393,10 @@ main.site-warm-up {
   justify-content: space-between;
 }
 
-.modal-body .theme-toggle,
-.modal-body .dark-mode-text,
-.modal-body label {
-  display: none !important;
-}
-
-@keyframes terminal-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes modal-slide-up {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.terminal-modal {
-  animation: modal-slide-up 0.4s ease-out;
-}
-
-.tech-glitch {
-  position: relative;
-  animation: tech-stutter 4s infinite;
-}
-
-@keyframes tech-stutter {
-  /* Stable State */
-  0%,
-  89%,
-  91%,
-  93%,
-  95%,
-  100% {
-    transform: translateX(0);
-    filter: hue-rotate(0deg) brightness(1);
-  }
-  /* Sudden Pulse */
-  90% {
-    transform: translateX(2px);
-    filter: hue-rotate(15deg) brightness(1.2);
-  }
-  92% {
-    transform: translateX(-2px);
-    filter: hue-rotate(-5deg);
-  }
-  94% {
-    transform: translateX(1px);
-    filter: hue-rotate(5deg) brightness(1.1);
-  }
+.modal-body img {
+  filter: sepia(100%) hue-rotate(90deg) brightness(1.1) contrast(1.1);
+  border: 1px solid var(--color-primary);
+  animation: breathing-glow 3s infinite alternate ease-in-out;
 }
 
 .vhs-stable {
@@ -527,7 +478,6 @@ main.site-warm-up {
 }
 
 .blip-entrance {
-  /* 0.2s makes it feel like a quick hardware flicker */
   animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
   opacity: 0;
   transform-origin: center;
@@ -563,7 +513,6 @@ main.site-warm-up {
   box-shadow: 0 0 10px var(--color-primary-light);
 }
 
-/* The Sonar Pulse */
 .nav-notification-dot::after {
   content: "";
   position: absolute;
@@ -589,13 +538,6 @@ main.site-warm-up {
 
 .blip-entrance .nav-notification-dot {
   animation: fast-blip 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-}
-
-.command {
-  color: var(--color-primary);
-  font-weight: bold;
-  text-shadow: 0 0 5px var(--glow-primary-6);
-  margin-right: 5px;
 }
 
 .system-breach {

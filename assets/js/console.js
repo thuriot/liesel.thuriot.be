@@ -12,6 +12,10 @@
       }
     },
 
+    _ensureContext() {
+      return this.ctx || (this.init(), this.ctx);
+    },
+
     _noise(freq, duration, volume, q = 1) {
       const bufferSize = this.ctx.sampleRate * duration;
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -98,30 +102,30 @@
     },
 
     playKey() {
-      this.ctx && this._noise(3000, 0.015, 0.08);
+      if (this._ensureContext()) this._noise(3000, 0.015, 0.08);
     },
+
     playSpace() {
-      this.ctx && this._noise(800, 0.03, 0.1);
+      if (this._ensureContext()) this._noise(800, 0.03, 0.1);
     },
 
     playEnter() {
-      if (!this.ctx) return;
+      if (!this._ensureContext()) return;
       this._noise(200, 0.1, 0.1, 0.5);
-      this.playKey();
+      this._noise(3000, 0.015, 0.08);
     },
 
     playError() {
-      if (!this.ctx) return;
+      if (!this._ensureContext()) return;
 
       const now = this.ctx.currentTime;
       const bursts = 3;
-      const spacing = 0.12; // Time between each "snap"
+      const spacing = 0.12;
 
       for (let i = 0; i < bursts; i++) {
         const startTime = now + i * spacing;
         const duration = 0.1;
 
-        // High-pitched resonant sweep
         const sweep = this.ctx.createOscillator();
         const sweepGain = this.ctx.createGain();
 
@@ -142,7 +146,6 @@
         sweep.start(startTime);
         sweep.stop(startTime + duration);
 
-        // Metallic noise click
         this._noise(5000, 0.05, 0.1, 0.5);
       }
     },
@@ -151,12 +154,23 @@
       this.init();
       this._powerTone(50, 60, true);
     },
+
     playPowerOff() {
-      this.ctx && this._powerTone(60, 50, false);
+      if (this._ensureContext()) this._powerTone(60, 50, false);
     },
   };
 
-  const appendCss = function () {
+  const DOM = {
+    overlay: () => document.getElementById("console-overlay"),
+    log: () => document.getElementById("log"),
+    input: () => document.getElementById("terminal-input"),
+    inputContainer: () => document.getElementById("input-container"),
+    siteMain: () => document.querySelector("main.container"),
+    navContainer: () => document.querySelector("nav#nav-container ul"),
+    sidebar: () => document.querySelector("#sidebar"),
+  };
+
+  const appendCss = () => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "/assets/css/console.css";
@@ -177,16 +191,9 @@
     "sudo",
     "coffee",
   ];
-  const BOOT_LINES = [
-    "ERR: SIGNAL INTERFERENCE DETECTED...",
-    "BYPASSING SECURITY PROTOCOLS...",
-    "MOUNTING VIRTUAL_FILE_SYSTEM...",
-    "SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
-    "TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
-  ];
 
   async function startTransition() {
-    const siteMain = document.querySelector("main.container");
+    const siteMain = DOM.siteMain();
     if (!siteMain) return;
 
     SoundManager.init();
@@ -196,16 +203,15 @@
 
     setTimeout(() => {
       injectConsoleHTML();
-      const overlay = document.getElementById("console-overlay");
-      const log = document.getElementById("log");
-      const inputCont = document.getElementById("input-container");
+      const overlay = DOM.overlay();
+      const log = DOM.log();
+      const inputCont = DOM.inputContainer();
 
       log.innerHTML = "";
       inputCont.style.display = "none";
       overlay.classList.remove("exit");
       overlay.style.display = "flex";
       overlay.classList.add("active");
-
       overlay.classList.add("signal-loss");
 
       setTimeout(() => {
@@ -217,7 +223,7 @@
   }
 
   function injectConsoleHTML() {
-    if (document.getElementById("console-overlay")) return;
+    if (DOM.overlay()) return;
     const html = `
         <div id="console-overlay">
             <div class="scanlines"></div>
@@ -231,7 +237,14 @@
         </div>
     `;
     document.body.insertAdjacentHTML("beforeend", html);
+    restoreCoffeeMode();
     setupEventListeners();
+  }
+
+  function restoreCoffeeMode() {
+    if (localStorage.getItem("console-coffee-mode") === "true") {
+      DOM.overlay().classList.add("coffee-theme");
+    }
   }
 
   function indexArticles() {
@@ -314,7 +327,16 @@
   }
 
   async function runBootSequence() {
-    const log = document.getElementById("log");
+    const log = DOM.log();
+
+    const BOOT_LINES = [
+      "ERR: SIGNAL INTERFERENCE DETECTED...",
+      "BYPASSING SECURITY PROTOCOLS...",
+      "MOUNTING VIRTUAL_FILE_SYSTEM...",
+      "SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
+      "TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
+    ];
+
     for (const line of BOOT_LINES) {
       const p = document.createElement("p");
       log.appendChild(p);
@@ -326,12 +348,12 @@
       }
       await new Promise((r) => setTimeout(r, 300));
     }
-    const inputCont = document.getElementById("input-container");
+    const inputCont = DOM.inputContainer();
     inputCont.style.display = "flex";
     setTimeout(() => {
       inputCont.style.opacity = "1";
     }, 10);
-    document.getElementById("terminal-input").focus();
+    DOM.input().focus();
   }
 
   function formatSize(n) {
@@ -386,11 +408,9 @@
     }
   }
 
-  function processCommand(input) {
-    const log = document.getElementById("log");
-    const [cmd, ...args] = input.toLowerCase().trim().split(/\s+/);
-
-    const print = (text, isHtml = false, className = "text-default") => {
+  const createPrintFn =
+    (log) =>
+    (text, isHtml = false, className = "text-default") => {
       const p = document.createElement("p");
       p.classList.add(className);
       if (isHtml) p.innerHTML = text;
@@ -398,12 +418,22 @@
       log.appendChild(p);
     };
 
-    print(`guest@system:~$ ${input}`, false, "text-echo");
+  function processCommand(input) {
+    const log = DOM.log();
+    const print = createPrintFn(log);
+    const printHtml = (text, className = "text-default") =>
+      print(text, true, className);
+    const printText = (text, className = "text-default") =>
+      print(text, false, className);
+
+    const [cmd, ...args] = input.toLowerCase().trim().split(/\s+/);
+
+    printText(`guest@system:~$ ${input}`, "text-echo");
 
     switch (cmd) {
       case "ls":
         if (!virtualFS || virtualFS.length === 0) {
-          print("NO FILES FOUND.");
+          printText("NO FILES FOUND.");
           break;
         }
         const opts = args || [];
@@ -416,69 +446,58 @@
               excerpt.length > 120
                 ? excerpt.slice(0, 120).trim() + "…"
                 : excerpt;
-            print(`${size}  ${f.name}  ${f.anchor}  - ${short}`);
+            printText(`${size}  ${f.name}  ${f.anchor}  - ${short}`);
           });
         } else {
           virtualFS.forEach((f) => {
             const size = formatSize(f.size);
-            print(`${size}  ${f.name}`);
+            printText(`${size}  ${f.name}`);
           });
         }
         break;
 
       case "cat":
         if (!args[0]) {
-          print("USAGE: CAT [FILENAME]", false, "text-hint");
+          printText("USAGE: CAT [FILENAME]", "text-hint");
           break;
         }
         const q = args[0].toLowerCase();
         const target = virtualFS.find((f) => f.name === q);
         if (target) {
-          print(
-            "------------------------------------",
-            false,
-            "text-separator",
-          );
+          printText("------------------------------------", "text-separator");
           const titleHtml = `<a href="${target.anchor}" target="_self">${escapeHtml(target.title)}</a>`;
-          print(titleHtml, true, "text-cyan");
+          printHtml(titleHtml, "text-cyan");
           const contentHtml = renderContentHtml(
             target.content || target.excerpt || "",
           );
-          print(contentHtml, true);
-          print(
-            "------------------------------------",
-            false,
-            "text-separator",
-          );
+          printHtml(contentHtml);
+          printText("------------------------------------", "text-separator");
         } else {
-          print(`FILE NOT FOUND: ${args[0]}`, false, "text-error");
+          printText(`FILE NOT FOUND: ${args[0]}`, "text-error");
         }
         break;
 
       case "github":
-        print(
+        printHtml(
           'GITHUB: <a href="https://github.com/LieselThuriot" target="_blank">https://github.com/LieselThuriot</a>',
-          true,
         );
         break;
 
       case "instagram":
-        print(
+        printHtml(
           'INSTAGRAM: <a href="https://www.instagram.com/liesel_vanta/" target="_blank">@liesel_vanta</a>',
-          true,
         );
         break;
 
       case "linkedin":
-        print(
+        printHtml(
           'LINKEDIN: <a href="https://www.linkedin.com/in/thuriot/" target="_blank">Liesel Thuriot</a>',
-          true,
         );
         break;
 
-      case "whoami":
-        const sidebar = document.querySelector("#sidebar");
-        const inputCont = document.getElementById("input-container");
+      case "whoami": {
+        const sidebar = DOM.sidebar();
+        const inputCont = DOM.inputContainer();
 
         if (sidebar) {
           inputCont.style.display = "none";
@@ -506,13 +525,13 @@
             <div class="modal-body">${clone.innerHTML}</div>
           `;
 
-          document.getElementById("log").appendChild(modal);
+          log.appendChild(modal);
 
           const exitModal = (e) => {
             if (e) e.preventDefault();
             modal.remove();
             inputCont.style.display = "flex";
-            document.getElementById("terminal-input").focus();
+            DOM.input().focus();
             window.removeEventListener("keydown", exitModal);
           };
 
@@ -524,77 +543,91 @@
           SoundManager.playEnter();
         }
         break;
+      }
 
       case "clear":
-        document.getElementById("log").innerHTML = "";
+        log.innerHTML = "";
         break;
 
       case "sudo":
         SoundManager.playError();
         document.body.classList.add("system-breach");
 
-        print(
-          "<span class='error'>[ ACCESS DENIED ]</span>",
-          true,
-          "text-error",
-        );
-        print(
+        printHtml("<span class='error'>[ ACCESS DENIED ]</span>", "text-error");
+        printHtml(
           "<span class='error'>PRIVILEGE ESCALATION IS DISABLED FOR GUEST_NODE</span>",
-          true,
           "text-error",
         );
 
         setTimeout(() => {
-          document.getElementById("log").innerHTML = "";
+          log.innerHTML = "";
           document.body.classList.remove("system-breach");
-          print("Unauthorized 'sudo' attempts have been logged.");
-          print("System stabilized. Ready for next command.");
+          printText(
+            "Unauthorized 'sudo' attempts have been logged.",
+            "text-error",
+          );
+          printText("System stabilized. Ready for next command.");
         }, 1200);
         break;
 
+      case "coffee": {
+        const overlay = DOM.overlay();
+        const isCoffeeTheme = overlay.classList.contains("coffee-theme");
+        if (isCoffeeTheme) {
+          overlay.classList.remove("coffee-theme");
+          localStorage.removeItem("console-coffee-mode");
+          printText("COFFEE MODE DISABLED. RETURNING TO TERMINAL GREEN.");
+        } else {
+          overlay.classList.add("coffee-theme");
+          localStorage.setItem("console-coffee-mode", "true");
+          printText(
+            "COFFEE MODE ENABLED. BREWING A WARM INTERFACE...",
+            "text-hint",
+          );
+        }
+        break;
+      }
+
       case "help":
-        print("Available commands:");
-        print(
-          "  <span class='command'>ls</span>          - List directory contents",
-          true,
+        printText("Available commands:");
+        printHtml(
+          "  <span class='text-command'>ls</span>          - List directory contents",
         );
-        print(
-          "  <span class='command'>cat</span>         - Display file content",
-          true,
+        printHtml(
+          "  <span class='text-command'>cat</span>         - Display file content",
         );
-        print(
-          "  <span class='command'>whoami</span>      - Display user profile & biometric data",
-          true,
+        printHtml(
+          "  <span class='text-command'>whoami</span>      - Display user profile & biometric data",
         );
-        print(
-          "  <span class='command'>github</span>      - Open GitHub profile",
-          true,
+        printHtml(
+          "  <span class='text-command'>github</span>      - Open GitHub profile",
         );
-        print(
-          "  <span class='command'>linkedin</span>    - Open LinkedIn profile",
-          true,
+        printHtml(
+          "  <span class='text-command'>linkedin</span>    - Open LinkedIn profile",
         );
-        print(
-          "  <span class='command'>instagram</span>   - Open Instagram profile",
-          true,
+        printHtml(
+          "  <span class='text-command'>instagram</span>   - Open Instagram profile",
         );
-        print(
-          "  <span class='command'>clear</span>       - Clear terminal screen",
-          true,
+        printHtml(
+          "  <span class='text-command'>sudo</span>        - Attempt privilege escalation",
         );
-        print(
-          "  <span class='command'>help</span>        - Show this help menu",
-          true,
+        printHtml(
+          "  <span class='text-command'>coffee</span>      - Toggle coffee mode (warm theme)",
         );
-        print(
-          "  <span class='command'>exit</span>        - Close the terminal session",
-          true,
+        printHtml(
+          "  <span class='text-command'>clear</span>       - Clear terminal screen",
+        );
+        printHtml(
+          "  <span class='text-command'>help</span>        - Show this help menu",
+        );
+        printHtml(
+          "  <span class='text-command'>exit</span>        - Close the terminal session",
         );
         break;
 
-      case "exit":
-        const overlay = document.getElementById("console-overlay");
-        const siteMain = document.querySelector("main.container");
+      case "exit": {
+        const overlay = DOM.overlay();
+        const siteMain = DOM.siteMain();
         overlay.classList.remove("active");
         overlay.classList.add("exit");
 
@@ -610,46 +643,27 @@
           }
         }, 1200);
         break;
-
-      case "coffee":
-        const overlay2 = document.getElementById("console-overlay");
-        const isCoffeeTheme = overlay2.classList.contains("coffee-theme");
-        if (isCoffeeTheme) {
-          overlay2.classList.remove("coffee-theme");
-          print("COFFEE MODE DISABLED. RETURNING TO TERMINAL GREEN.", false);
-        } else {
-          overlay2.classList.add("coffee-theme");
-          print(
-            "COFFEE MODE ENABLED. BREWING A WARM INTERFACE...",
-            false,
-            "text-hint",
-          );
-        }
-        break;
+      }
 
       default:
-        print(`UNKNOWN COMMAND: ${cmd}`, false, "text-error");
+        printText(`UNKNOWN COMMAND: ${cmd}`, "text-error");
     }
 
-    const ov = document.getElementById("console-overlay");
+    const ov = DOM.overlay();
     ov.scrollTo({ top: ov.scrollHeight, behavior: "smooth" });
   }
 
   function setupEventListeners() {
-    const input = document.getElementById("terminal-input");
-    const playInputSound = (type = "key") => {
-      if (type === "enter") SoundManager.playEnter();
-      else SoundManager.playKey();
-    };
+    const input = DOM.input();
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        playInputSound("enter");
+        SoundManager.playEnter();
         const val = e.target.value;
         if (val) processCommand(val);
         e.target.value = "";
       } else if (e.key === "Tab") {
-        playInputSound("key");
+        SoundManager.playKey();
         e.preventDefault();
         handleTabCompletion(input);
       } else if (
@@ -657,16 +671,17 @@
         e.key === "Backspace" ||
         e.key === "Delete"
       ) {
-        playInputSound("key");
+        SoundManager.playKey();
       }
     });
-    document.getElementById("console-overlay").addEventListener("click", () => {
+
+    DOM.overlay().addEventListener("click", () => {
       input.focus();
     });
   }
 
   function appendNavlink() {
-    const navContainer = document.querySelector("nav#nav-container ul");
+    const navContainer = DOM.navContainer();
     if (!navContainer) return;
 
     setTimeout(() => {
@@ -683,9 +698,8 @@
       const a = document.getElementById("override-btn");
       const dot = document.querySelector(".nav-notification-dot");
 
-      a.onclick = function (e) {
+      a.onclick = (e) => {
         e.preventDefault();
-        // Remove the dot when clicked
         if (dot) dot.remove();
         startTransition();
       };
