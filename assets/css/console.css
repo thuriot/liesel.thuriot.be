@@ -177,19 +177,19 @@ main.site-warm-up {
   white-space: pre-wrap;
 }
 
-#log a {
+#log a, .terminal-modal a {
   color: var(--color-primary);
   text-decoration: underline;
   cursor: pointer;
   text-shadow: 0 0 5px var(--glow-primary-4);
 }
 
-#log a:hover {
+#log a:hover, .terminal-modal a:hover {
   background: var(--color-primary);
   color: var(--color-black);
 }
 
-#log a.icon-link {
+.terminal-modal a.icon-link {
   line-height: 1em;
   padding: 2px;
 }
