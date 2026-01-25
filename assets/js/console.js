@@ -163,6 +163,7 @@
   const DOM = {
     overlay: () => document.getElementById("console-overlay"),
     log: () => document.getElementById("log"),
+    mirror: () => document.getElementById("mirror-text"),
     input: () => document.getElementById("terminal-input"),
     inputContainer: () => document.getElementById("input-container"),
     siteMain: () => document.querySelector("main.container"),
@@ -233,7 +234,11 @@
                 <div id="log"></div>
                 <div class="input-line" id="input-container" style="display: none; opacity: 0;">
                     <span class="prompt">guest@system:~$</span>
-                    <input type="text" id="terminal-input" spellcheck="false" autocomplete="off">
+                    <div class="input-wrapper">
+                      <span id="mirror-text"></span>
+                      <span id="cursor-block"></span>
+                      <input type="text" id="terminal-input" spellcheck="false" autocomplete="off" autofocus>
+                    </div>
                 </div>
             </div>
         </div>
@@ -327,8 +332,27 @@
         name.replace(".md", "");
       const anchor = `#${id}`;
 
-      return { name, title, excerpt, content, size, anchor };
+      return { name, title, excerpt, content, size, anchor, readAccess: true, admin: false };
     });
+
+    virtualFS.push({
+      name: "manifesto.md",
+      title: "Manifesto",
+      size: 10 * 1024 * 1024,
+      anchor: "#manifesto",
+      readAccess: false,
+      admin: false      
+    });
+
+    virtualFS.push({
+      name: ".vanguard_config",
+      title: "Vanguard Configuration File",
+      size: 2 * 1024,
+      anchor: "#config",
+      readAccess: false,
+      admin: true
+    });
+
     virtualFS.sort((a, b) => a.title.localeCompare(b.title));
   }
 
@@ -405,12 +429,24 @@
     const parts = val.split(/\s+/);
     const lastPart = parts[parts.length - 1];
 
+    let foundMatch = false;
+
     if (parts.length === 1) {
       const match = COMMANDS.find((c) => c.startsWith(val));
-      if (match) inputEl.value = match;
+      if (match) {
+        inputEl.value = match;
+        foundMatch = true;
+      }
     } else if (parts[0] === "cat") {
       const match = virtualFS.find((f) => f.name.startsWith(lastPart));
-      if (match) inputEl.value = `cat ${match.name}`;
+      if (match) {
+        inputEl.value = `cat ${match.name}`;
+        foundMatch = true;
+      }
+    }
+
+    if (foundMatch) {
+      inputEl.dispatchEvent(new Event("input", { bubbles: true }));
     }
   }
 
@@ -442,30 +478,37 @@
           printText("NO FILES FOUND.");
           break;
         }
+
         const opts = args || [];
-        const long = opts.includes("-l") || opts.includes("--long");
+
+        const long = opts.includes("-la") || opts.includes("-l");
+        const all = opts.includes("-la") || opts.includes("-a");
+
         if (long) {
           virtualFS.forEach((f) => {
-            const size = formatSize(f.size);
-            const excerpt = (f.excerpt || "").replace(/\s+/g, " ").trim();
-            const short =
-              excerpt.length > 120
-                ? excerpt.slice(0, 120).trim() + "…"
-                : excerpt;
+            if (!all && f.name.startsWith(".")) return;
 
+            const access = f.admin ? "-rw-------" : f.readAccess ? "-rw-rw-r--" : "-rw-rw----";
+            const owner = f.admin ? "admin " : "liesel";
+            const size = formatSize(f.size);
             const whitespace = " ".repeat(8 - Math.min(size.length, 8));
             const shortWhitespace = " ".repeat(
               18 - Math.min(f.name.length, 18),
             );
+            const anchorWhitespace = " ".repeat(
+              15 - Math.min(f.anchor.length, 15),
+            );
             printText(
-              `${size}${whitespace}📄 ${f.name}${shortWhitespace}${f.anchor}${shortWhitespace}- ${short}`,
+              `${access}  1 ${owner}  vanguard   ${size}${whitespace}📄 ${f.name} ${shortWhitespace} ${f.anchor} ${anchorWhitespace} ${f.title}`,
             );
           });
         } else {
           virtualFS.forEach((f) => {
+            if (!all && f.name.startsWith(".")) return;
+
             const size = formatSize(f.size);
             const whitespace = " ".repeat(8 - Math.min(size.length, 8));
-            printText(`${size}${whitespace}📄 ${f.name}`);
+            printText(`${size} ${whitespace} 📄 ${f.name}`);
           });
         }
         break;
@@ -478,14 +521,21 @@
         const q = args[0].toLowerCase();
         const target = virtualFS.find((f) => f.name === q);
         if (target) {
-          printText("------------------------------------", "text-separator");
-          const titleHtml = `<a href="${target.anchor}" target="_self">${escapeHtml(target.title)}</a>`;
-          printHtml(titleHtml, "text-cyan");
-          const contentHtml = renderContentHtml(
-            target.content || target.excerpt || "",
-          );
-          printHtml(contentHtml);
-          printText("------------------------------------", "text-separator");
+          if (!target.readAccess || target.admin) {
+            printText(
+              `ACCESS DENIED: Insufficient permissions for ${q}`,
+              "text-error",
+            );
+          } else {
+            printText("------------------------------------", "text-separator");
+            const titleHtml = `<a href="${target.anchor}" target="_self">${escapeHtml(target.title)}</a>`;
+            printHtml(titleHtml, "text-cyan");
+            const contentHtml = renderContentHtml(
+              target.content || target.excerpt || "",
+            );
+            printHtml(contentHtml);
+            printText("------------------------------------", "text-separator");
+          }
         } else {
           printText(`FILE NOT FOUND: ${args[0]}`, "text-error");
         }
@@ -531,13 +581,17 @@
           const modal = document.createElement("div");
           modal.id = "whoami-modal";
           modal.className = "terminal-modal";
+
+          if (DOM.overlay().classList.contains("coffee-theme"))
+            modal.classList.add("coffee-theme");
+
           modal.innerHTML = `
             <div class="vhs">
               <div class="modal-header">
                 <span class="modal-title">RECON_DATA :: L_THURIOT.USR</span>
                 <span class="modal-close" id="close-profile">[ PRESS ANY KEY TO EXIT ]</span>
               </div>
-              <div class="modal-body">${clone.innerHTML}</div>
+              <div class="modal-body" data-bs-theme="dark">${clone.innerHTML}</div>
             </div>
           `;
 
@@ -555,8 +609,6 @@
             window.addEventListener("keydown", exitModal);
             document.getElementById("close-profile").onclick = exitModal;
           }, 150);
-
-          SoundManager.playEnter();
         }
         break;
       }
@@ -691,17 +743,17 @@
         printHtml(createRainbowAscii(art));
         printText(" ");
         printText("  SYSTEM: L-TH_01 [ VANGUARD ] // SYSTEM_HASH: 0x8FA4C2");
-        printText("  KERNEL: 1.0-STABLE // BUILD: 6.1.0-V-742");
+        printText("  KERNEL: 6.1-STABLE // BUILD: 6.1.0-V-742");
         printText("  STATUS: OPERATIONAL // AUTH: GUEST_LEVEL_1");
         break;
 
       case "exit": {
+        SoundManager.playPowerOff();
+
         const overlay = DOM.overlay();
         const siteMain = DOM.siteMain();
         overlay.classList.remove("active");
         overlay.classList.add("exit");
-
-        SoundManager.playPowerOff();
 
         setTimeout(() => {
           overlay.style.display = "none";
@@ -755,13 +807,17 @@
 
   function setupEventListeners() {
     const input = DOM.input();
+    const mirror = DOM.mirror();
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         SoundManager.playEnter();
-        const val = e.target.value;
+
+        const val = input.value;
+        input.value = "";
+        mirror.textContent = "";
+
         if (val) processCommand(val);
-        e.target.value = "";
       } else if (e.key === "Tab") {
         SoundManager.playKey();
         e.preventDefault();
@@ -773,6 +829,10 @@
       ) {
         SoundManager.playKey();
       }
+    });
+
+    input.addEventListener("input", () => {
+      mirror.textContent = input.value;
     });
 
     DOM.overlay().addEventListener("click", () => {

@@ -6,10 +6,12 @@
   --color-error: #ff3e3e;
   --color-hint: #ffb400;
   --color-echo: #008f11;
+  --color-echo-rgb: 0, 143, 17;
   --color-separator: #444;
   --color-black: #222;
   --color-red-glitch: #ff0000;
   --color-cyan-glitch: #00ffff;
+  --color-glitch-primary: #fff;
 
   --glow-primary-1: rgba(0, 255, 65, 0.1);
   --glow-primary-2: rgba(0, 255, 65, 0.15);
@@ -26,16 +28,21 @@
   --glow-chromatic-blue: rgba(0, 0, 255, 0.03);
 }
 
-#console-overlay.glass {
+[data-bs-theme="light"] {
+  --color-glitch-primary: #444;
+}
+
+.glass {
   --color-black: #222222cf;
 }
 
-#console-overlay.coffee-theme {
+.coffee-theme {
   --color-primary: #e8b76f;
   --color-primary-light: #f4d4a8;
   --color-error: #d97548;
   --color-hint: #d4a86b;
   --color-echo: #b8860b;
+  --color-echo-rgb: 184, 134, 11;
   --color-separator: #8b7355;
 
   --glow-primary-1: rgba(232, 183, 111, 0.1);
@@ -82,7 +89,7 @@
 
 .glitch-link {
   position: relative;
-  color: white;
+  color: var(--color-glitch-primary);
   text-decoration: none;
   display: inline-block;
   text-shadow: 0 0 10px var(--glow-text-white);
@@ -170,7 +177,7 @@ main.site-warm-up {
   animation: flicker-lines 0.15s infinite;
 }
 
-#log p {
+#log p, .terminal-modal p {
   margin: 5px 0;
   text-shadow: 0 0 5px var(--glow-primary-4);
   line-height: 1.4;
@@ -187,6 +194,7 @@ main.site-warm-up {
 #log a:hover, .terminal-modal a:hover {
   background: var(--color-primary);
   color: var(--color-black);
+  padding: .2rem;
 }
 
 .terminal-modal a.icon-link {
@@ -194,15 +202,52 @@ main.site-warm-up {
   padding: 2px;
 }
 
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.prompt {
+  margin-right: 0.5rem;
+}
+
 #terminal-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
   background: transparent;
   border: none;
-  color: var(--color-primary);
-  font-family: inherit;
-  font-size: 1rem;
   outline: none;
-  width: 100%;
-  margin-left: 0.5rem;
+  color: transparent;
+  caret-color: transparent;
+  z-index: 2;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+#mirror-text {
+  color: var(--color-primary);
+  white-space: pre;
+  z-index: 1;
+}
+
+#cursor-block {
+  display: inline-block;
+  width: 1ch;
+  height: 1.2em;
+  background-color: var(--color-primary);
+  box-shadow: 0 0 8px var(--glow-primary-4);
+  animation: block-blink 1s steps(2) infinite;
+  margin-left: 1px;
+  z-index: 1;
+}
+
+@keyframes block-blink {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-blip-out {
@@ -345,6 +390,20 @@ main.site-warm-up {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 99999;
+  font-family: "Share Tech Mono", monospace;
+  color: var(--color-primary);
+}
+
+.terminal-modal .merriweather {
+  font-family: "Share Tech Mono", monospace;
+}
+
+.terminal-modal .list-group-item {
+  --bs-list-group-color: var(--color-echo);
+}
+
+.terminal-modal .badge {
+  --bs-body-color-rgb: var(--color-echo-rgb);
 }
 
 .modal-header {
