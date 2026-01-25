@@ -336,12 +336,15 @@ main.site-warm-up {
 .terminal-modal {
   background: rgba(0, 20, 0, 0.98);
   border: 1px solid var(--color-primary);
-  margin: 20px auto;
   width: 100%;
   max-width: 450px;
   box-shadow: 0 0 30px var(--glow-primary-2);
-  position: relative;
-  z-index: 100;
+  position: fixed;
+  display: inline-block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 99999;
 }
 
 .modal-header {
@@ -403,8 +406,7 @@ main.site-warm-up {
   animation: breathing-glow 3s infinite alternate ease-in-out;
 }
 
-.vhs-stable {
-  position: relative;
+.vhs {
   background: rgba(0, 15, 0, 0.98);
   border: 1px solid var(--color-primary);
   text-shadow:
@@ -444,7 +446,7 @@ main.site-warm-up {
 }
 
 /* Subtle, slow-moving scanline instead of a fast blink */
-.vhs-stable::after {
+.vhs::after {
   content: "";
   position: absolute;
   top: 0;

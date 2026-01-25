@@ -506,9 +506,9 @@
 
       case "whoami": {
         const sidebar = DOM.sidebar();
-        const inputCont = DOM.inputContainer();
 
         if (sidebar) {
+          const inputCont = DOM.inputContainer();
           inputCont.style.display = "none";
 
           const clone = sidebar.cloneNode(true);
@@ -525,16 +525,18 @@
 
           const modal = document.createElement("div");
           modal.id = "whoami-modal";
-          modal.className = "terminal-modal vhs-stable";
+          modal.className = "terminal-modal";
           modal.innerHTML = `
-            <div class="modal-header">
-              <span class="modal-title">RECON_DATA :: L_THURIOT.USR</span>
-              <span class="modal-close" id="close-profile">[ PRESS ANY KEY TO EXIT ]</span>
+            <div class="vhs">
+              <div class="modal-header">
+                <span class="modal-title">RECON_DATA :: L_THURIOT.USR</span>
+                <span class="modal-close" id="close-profile">[ PRESS ANY KEY TO EXIT ]</span>
+              </div>
+              <div class="modal-body">${clone.innerHTML}</div>
             </div>
-            <div class="modal-body">${clone.innerHTML}</div>
           `;
 
-          log.appendChild(modal);
+          document.body.appendChild(modal);
 
           const exitModal = (e) => {
             if (e) e.preventDefault();
