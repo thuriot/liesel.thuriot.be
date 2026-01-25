@@ -581,3 +581,10 @@ main.site-warm-up {
   display: block;
   margin: 5px 0;
 }
+
+.terminal-logo {
+  font-family: monospace;
+  white-space: pre;
+  line-height: 1;
+  font-weight: bold;
+}

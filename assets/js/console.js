@@ -191,6 +191,7 @@
     "sudo",
     "coffee",
     "glass",
+    "version",
   ];
 
   async function startTransition() {
@@ -595,11 +596,25 @@
         } else {
           overlay.classList.add("coffee-theme");
           localStorage.setItem("console-coffee-mode", "true");
-          printHtml("\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2808\u28B3\r\n\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u28E0\u287E\u2847\u2800\u28B6\u2840\r\n\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u28E0\u287E\u288B\u287C\u2801\u2800\u28F8\u2847\r\n\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u28FF\u28F3\u280F\u2800\u28E0\u281E\u28E1\u284F\r\n\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u28BF\u28FF\u2844\u28B8\u28EF\u287E\u280B\r\n\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2819\u2833\u2838\u285F\u2801\r\n\u2800\u2840\u2880\u28C0\u28C0\u28C0\u28C0\u28C0\u28C0\u28C0\u28C0\u28C0\u28C1\u28C0\u28C0\r\n\u28B8\u285F\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u281B\u28BB\u28BF\u28F7\u2880\u28C0\u28C0\u28C0\u2840\r\n\u28B8\u2847\u2800\u28F6\u28A6\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2810\u2836\u28D2\u28D2\u28FF\u28CB\u28E5\u28C4\u2849\u28BB\u28C6\r\n\u28B8\u28FF\u2808\u28C7\u28FE\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2836\u2836\u28B6\u28FF\u2801\u2800\u28B8\u2847\u28B0\u28FF\r\n\u2800\u28BB\u28C6\u28BB\u28FF\u2844\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2812\u2812\u28FE\u28EF\u28E4\u28F4\u281F\u28E1\u28FF\u2803\r\n\u2800\u2808\u28BF\u28CE\u283B\u28F7\u2840\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u281B\u28FF\u28FF\u28ED\u28E5\u28F4\u287F\u281F\u2801\r\n\u2800\u2800\u2808\u28BF\u28F7\u28C4\u2811\u28E6\u2844\u2800\u2800\u2800\u28C0\u2800\u289B\u28FB\u28FF\u285F\u2809\u2809\u2809\u2800\u2800\u2800\u2800\u2800 BREWING A WARM INTERFACE...\r\n\u2800\u28F4\u2876\u2836\u283F\u283F\u28BF\u28F6\u28E4\u28E4\u28E4\u28E4\u28FD\u28FF\u283F\u281B\u28DB\u28DF\u28F7\u2846\r\n\u2800\u281B\u2837\u2836\u28E4\u28E4\u28E4\u28E4\u28F4\u28FE\u28FF\u28FF\u28F6\u28E6\u28E4\u28F6\u28F6\u287E\u281F\u2801\r\n\r\n");
-          printText(
-            "☕ COFFEE MODE ENABLED.",
-            "text-hint",
-          );
+          const art = `⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢳
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⡇⠀⢶⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⢋⡼⠁⠀⣸⡇
+⠀⠀⠀⠀⠀⠀⠀⠀⣿⣳⠏⠀⣠⠞⣡⡏
+⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⡄⢸⣯⡾⠋
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠳⠸⡟⠁
+⠀⡀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣁⣀⣀
+⢸⡟⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⢻⢿⣷⢀⣀⣀⣀⡀
+⢸⡇⠀⣶⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠶⣒⣒⣿⣋⣥⣄⡉⢻⣆
+⢸⣿⠈⣇⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠶⠶⢶⣿⠁⠀⢸⡇⢰⣿
+⠀⢻⣆⢻⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠒⠒⣾⣯⣤⣴⠟⣡⣿⠃
+⠀⠈⢿⣎⠻⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⣿⣿⣭⣥⣴⡿⠟⠁
+⠀⠀⠈⢿⣷⣄⠑⣦⡄⠀⠀⠀⣀⠀⢛⣻⣿⡟⠉⠉⠉
+⠀⣴⡶⠶⠿⠿⢿⣶⣤⣤⣤⣤⣽⣿⠿⠛⣛⣟⣷⡆⠀BREWING A WARM INTERFACE...
+⠀⠛⠷⠶⣤⣤⣤⣤⣴⣾⣿⣿⣶⣦⣤⣶⣶⡾⠟⠁`;
+
+          printHtml(createRainbowAscii(art));
+          printText(" ");
+          printText("☕ COFFEE MODE ENABLED.", "text-hint");
         }
         break;
       }
@@ -655,8 +670,29 @@
           "  <span class='text-command'>help</span>       - Show this help menu",
         );
         printHtml(
+          "  <span class='text-command'>version</span>    - Show system version info",
+        );
+        printHtml(
           "  <span class='text-command'>exit</span>       - Close the terminal session",
         );
+        break;
+
+      case "version":
+        const art = `░██    ░██                                                                        ░██ 
+░██    ░██                                                                        ░██ 
+░██    ░██  ░██████   ░████████   ░████████ ░██    ░██  ░██████   ░██░████  ░████████ 
+░██    ░██       ░██  ░██    ░██ ░██    ░██ ░██    ░██       ░██  ░███     ░██    ░██ 
+ ░██  ░██   ░███████  ░██    ░██ ░██    ░██ ░██    ░██  ░███████  ░██      ░██    ░██ 
+  ░██░██   ░██   ░██  ░██    ░██ ░██   ░███ ░██   ░███ ░██   ░██  ░██      ░██   ░███ 
+   ░███     ░█████░██ ░██    ░██  ░█████░██  ░█████░██  ░█████░██ ░██       ░█████░██ 
+                                        ░██                                           
+                                  ░███████ `;
+
+        printHtml(createRainbowAscii(art));
+        printText(" ");
+        printText("  SYSTEM: L-TH_01 [ VANGUARD ] // SYSTEM_HASH: 0x8FA4C2");
+        printText("  KERNEL: 1.0-STABLE // BUILD: 6.1.0-V-742");
+        printText("  STATUS: OPERATIONAL // AUTH: GUEST_LEVEL_1");
         break;
 
       case "exit": {
@@ -685,6 +721,36 @@
 
     const ov = DOM.overlay();
     ov.scrollTo({ top: ov.scrollHeight, behavior: "smooth" });
+  }
+
+  function createRainbowAscii(input) {
+    const lines = input.split("\n");
+    let htmlOutput = `<div class="terminal-logo">`;
+
+    // Control how "stretched" the rainbow is
+    const horizontalFrequency = 5; // Higher = more color shifts horizontally
+    const verticalFrequency = 15; // Higher = more color shifts vertically
+
+    lines.forEach((line, rowIndex) => {
+      const chars = Array.from(line);
+
+      chars.forEach((char, colIndex) => {
+        if (char === " ") {
+          htmlOutput += " ";
+          return;
+        }
+
+        const hue =
+          (colIndex * horizontalFrequency + rowIndex * verticalFrequency) % 360;
+
+        htmlOutput += `<span style="color: hsl(${hue}, 100%, 60%);">${char}</span>`;
+      });
+
+      htmlOutput += "\n";
+    });
+
+    htmlOutput += `</div>`;
+    return htmlOutput;
   }
 
   function setupEventListeners() {
