@@ -190,6 +190,7 @@
     "whoami",
     "sudo",
     "coffee",
+    "glass",
   ];
 
   async function startTransition() {
@@ -237,13 +238,17 @@
         </div>
     `;
     document.body.insertAdjacentHTML("beforeend", html);
-    restoreCoffeeMode();
+    restoreThemes();
     setupEventListeners();
   }
 
-  function restoreCoffeeMode() {
+  function restoreThemes() {
     if (localStorage.getItem("console-coffee-mode") === "true") {
       DOM.overlay().classList.add("coffee-theme");
+    }
+
+    if (localStorage.getItem("console-glass") === "true") {
+      DOM.overlay().classList.add("glass");
     }
   }
 
@@ -446,12 +451,16 @@
               excerpt.length > 120
                 ? excerpt.slice(0, 120).trim() + "…"
                 : excerpt;
-            printText(`${size}  ${f.name}  ${f.anchor}  - ${short}`);
+                
+            const whitespace = " ".repeat(8 - Math.min(size.length, 8));
+            const shortWhitespace = " ".repeat(18 - Math.min(f.name.length, 18));
+            printText(`${size}${whitespace}📄 ${f.name}${shortWhitespace}${f.anchor}${shortWhitespace}- ${short}`);
           });
         } else {
           virtualFS.forEach((f) => {
             const size = formatSize(f.size);
-            printText(`${size}  ${f.name}`);
+            const whitespace = " ".repeat(8 - Math.min(size.length, 8));
+            printText(`${size}${whitespace}📄 ${f.name}`);
           });
         }
         break;
@@ -576,14 +585,29 @@
         if (isCoffeeTheme) {
           overlay.classList.remove("coffee-theme");
           localStorage.removeItem("console-coffee-mode");
-          printText("COFFEE MODE DISABLED. RETURNING TO TERMINAL GREEN.");
+          printText("☕ COFFEE MODE DISABLED. RETURNING TO TERMINAL GREEN.");
         } else {
           overlay.classList.add("coffee-theme");
           localStorage.setItem("console-coffee-mode", "true");
           printText(
-            "COFFEE MODE ENABLED. BREWING A WARM INTERFACE...",
+            "☕ COFFEE MODE ENABLED. BREWING A WARM INTERFACE...",
             "text-hint",
           );
+        }
+        break;
+      }
+
+      case "glass": {
+        const overlay = DOM.overlay();
+        const isGlass = overlay.classList.contains("glass");
+        if (isGlass) {
+          overlay.classList.remove("glass");
+          localStorage.removeItem("console-glass");
+          printText("🪟 GLASS MODE DISABLED.");
+        } else {
+          overlay.classList.add("glass");
+          localStorage.setItem("console-glass", "true");
+          printText("🪟 GLASS MODE ENABLED.", "text-hint");
         }
         break;
       }
@@ -591,37 +615,40 @@
       case "help":
         printText("Available commands:");
         printHtml(
-          "  <span class='text-command'>ls</span>          - List directory contents",
+          "  <span class='text-command'>ls</span>         - List directory contents",
         );
         printHtml(
-          "  <span class='text-command'>cat</span>         - Display file content",
+          "  <span class='text-command'>cat</span>        - Display file content",
         );
         printHtml(
-          "  <span class='text-command'>whoami</span>      - Display user profile & biometric data",
+          "  <span class='text-command'>whoami</span>     - Display user profile & biometric data",
         );
         printHtml(
-          "  <span class='text-command'>github</span>      - Open GitHub profile",
+          "  <span class='text-command'>github</span>     - Open GitHub profile",
         );
         printHtml(
-          "  <span class='text-command'>linkedin</span>    - Open LinkedIn profile",
+          "  <span class='text-command'>linkedin</span>   - Open LinkedIn profile",
         );
         printHtml(
-          "  <span class='text-command'>instagram</span>   - Open Instagram profile",
+          "  <span class='text-command'>instagram</span>  - Open Instagram profile",
         );
         printHtml(
-          "  <span class='text-command'>sudo</span>        - Attempt privilege escalation",
+          "  <span class='text-command'>coffee</span>     - Toggle coffee mode",
         );
         printHtml(
-          "  <span class='text-command'>coffee</span>      - Toggle coffee mode (warm theme)",
+          "  <span class='text-command'>glass</span>      - Toggle glass mode",
         );
         printHtml(
-          "  <span class='text-command'>clear</span>       - Clear terminal screen",
+          "  <span class='text-command'>sudo</span>       - Attempt privilege escalation",
         );
         printHtml(
-          "  <span class='text-command'>help</span>        - Show this help menu",
+          "  <span class='text-command'>clear</span>      - Clear terminal screen",
         );
         printHtml(
-          "  <span class='text-command'>exit</span>        - Close the terminal session",
+          "  <span class='text-command'>help</span>       - Show this help menu",
+        );
+        printHtml(
+          "  <span class='text-command'>exit</span>       - Close the terminal session",
         );
         break;
 

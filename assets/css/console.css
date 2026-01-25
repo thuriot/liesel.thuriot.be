@@ -7,7 +7,7 @@
   --color-hint: #ffb400;
   --color-echo: #008f11;
   --color-separator: #444;
-  --color-black: #000;
+  --color-black: #222;
   --color-red-glitch: #ff0000;
   --color-cyan-glitch: #00ffff;
 
@@ -24,6 +24,10 @@
   --glow-chromatic-red: rgba(255, 0, 0, 0.03);
   --glow-chromatic-green: rgba(0, 255, 0, 0.01);
   --glow-chromatic-blue: rgba(0, 0, 255, 0.03);
+}
+
+#console-overlay.glass {
+  --color-black: #222222cf;
 }
 
 #console-overlay.coffee-theme {
