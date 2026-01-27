@@ -177,24 +177,27 @@ main.site-warm-up {
   animation: flicker-lines 0.15s infinite;
 }
 
-#log p, .terminal-modal p {
+#log p,
+.terminal-modal p {
   margin: 5px 0;
   text-shadow: 0 0 5px var(--glow-primary-4);
   line-height: 1.4;
   white-space: pre-wrap;
 }
 
-#log a, .terminal-modal a {
+#log a,
+.terminal-modal a {
   color: var(--color-primary);
   text-decoration: underline;
   cursor: pointer;
   text-shadow: 0 0 5px var(--glow-primary-4);
 }
 
-#log a:hover, .terminal-modal a:hover {
+#log a:hover,
+.terminal-modal a:hover {
   background: var(--color-primary);
   color: var(--color-black);
-  padding: .2rem;
+  padding: 0.2rem;
 }
 
 .terminal-modal a.icon-link {
@@ -246,8 +249,12 @@ main.site-warm-up {
 }
 
 @keyframes block-blink {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes tv-blip-out {
@@ -641,7 +648,8 @@ main.site-warm-up {
   margin: 5px 0;
 }
 
-.terminal-logo {
+.terminal-logo,
+.terminal-skill-bar {
   font-family: monospace;
   white-space: pre;
   line-height: 1;

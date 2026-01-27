@@ -288,31 +288,72 @@
 
           if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) {
             const t = node.innerText.trim();
-            if (t) contentParts.push(t);
+            if (t) {
+              contentParts.push(" ");
+
+              if (
+                node.classList.contains("card-header") ||
+                node.parentElement.parentElement?.classList.contains("timeline")
+              ) {
+                contentParts.push(`- ${t}`);
+              } else if (tag === "h1" || tag === "h2") {
+                contentParts.push(`• ${t}`);
+              } else {
+                contentParts.push(t);
+              }
+            }
             return;
           }
 
-          if (tag === "p") {
-            const t = node.innerText.trim();
-            if (t) contentParts.push(t);
+          if (tag === "blockquote") {
+            const t = node.innerText.replace(/\s{2,}/g, " ").trim();
+            if (t) {
+              contentParts.push(" ");
+              contentParts.push("> " + t);
+              contentParts.push(" ");
+            }
+            return;
+          }
+
+          if (tag === "blockquote" || tag === "p" || tag === "span") {
+            const t = node.innerText.replace(/\s{2,}/g, " ").trim();
+            if (t) {
+              if (
+                node.parentElement.parentElement?.classList.contains("timeline")
+              ) {
+                contentParts.push(`  ${t}`);
+              } else {
+                contentParts.push(t);
+              }
+            }
             return;
           }
 
           if (tag === "li") {
-            const t = node.innerText.trim();
+            if (node.childNodes.length > 1) {
+              for (const child of Array.from(node.childNodes)) {
+                traverse(child);
+              }
+              return;
+            }
+
+            const t = node.innerText.replace(/\s{2,}/g, " ").trim();
             if (t) contentParts.push("- " + t);
             return;
           }
 
           if (tag === "a") {
             const href = node.getAttribute("href") || node.href || "";
-            const text = (node.innerText || href).trim();
+            const img = node.querySelector("img");
+            const text = img
+              ? img.getAttribute("alt") || ""
+              : (node.innerText || href).trim();
             if (text && href) contentParts.push(`${text} -> ${href}`);
             return;
           }
 
           if (node.classList && node.classList.contains("progress-bar")) {
-            const t = node.innerText && node.innerText.trim();
+            const t = parseSkill(node);
             if (t) contentParts.push(t);
             return;
           }
@@ -323,16 +364,27 @@
 
       for (const child of Array.from(el.childNodes)) traverse(child);
 
-      const content = contentParts.filter(Boolean).join("\n\n");
+      const content = contentParts.filter(Boolean).join("\n");
 
       const size = content.length;
       const id =
         el.id ||
+        el.getAttribute("data-article") ||
         title.toLowerCase().replace(/\s+/g, "-") ||
         name.replace(".md", "");
+
       const anchor = `#${id}`;
 
-      return { name, title, excerpt, content, size, anchor, readAccess: true, admin: false };
+      return {
+        name,
+        title,
+        excerpt,
+        content,
+        size,
+        anchor,
+        readAccess: true,
+        admin: false,
+      };
     });
 
     virtualFS.push({
@@ -341,7 +393,7 @@
       size: 10 * 1024 * 1024,
       anchor: "#manifesto",
       readAccess: false,
-      admin: false      
+      admin: false,
     });
 
     virtualFS.push({
@@ -350,10 +402,22 @@
       size: 2 * 1024,
       anchor: "#config",
       readAccess: false,
-      admin: true
+      admin: true,
     });
 
     virtualFS.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  function parseSkill(el) {
+    const label = el.querySelector("span:first-child").innerText.trim();
+    const value = parseInt(el.parentElement.getAttribute("aria-valuenow"));
+
+    // Create the Bar: 20 segments total
+    const filledSegments = Math.round(value / 5);
+    const bar = "█".repeat(filledSegments) + "░".repeat(20 - filledSegments);
+
+    // Format: Label [████░░░░] 80%
+    return `${label.padEnd(35)} [${bar}] ${value}%`;
   }
 
   async function runBootSequence() {
@@ -420,6 +484,11 @@
     });
 
     out = out.replace(/\n\n+/g, "<br><br>").replace(/\n/g, "<br>");
+
+    out = out.replace(/([░█])+/g, function (bar) {
+      return `<span class="terminal-skill-bar">${bar}</span>`;
+    });
+
     return out;
   }
 
@@ -488,7 +557,11 @@
           virtualFS.forEach((f) => {
             if (!all && f.name.startsWith(".")) return;
 
-            const access = f.admin ? "-rw-------" : f.readAccess ? "-rw-rw-r--" : "-rw-rw----";
+            const access = f.admin
+              ? "-rw-------"
+              : f.readAccess
+                ? "-rw-rw-r--"
+                : "-rw-rw----";
             const owner = f.admin ? "admin " : "liesel";
             const size = formatSize(f.size);
             const whitespace = " ".repeat(8 - Math.min(size.length, 8));
