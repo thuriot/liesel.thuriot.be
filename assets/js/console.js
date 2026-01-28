@@ -944,13 +944,16 @@
       case "./breach_protocol.sh": {
         if (virtualFS.find((f) => f.name === "breach_protocol.sh")) {
           DOM.overlay().remove();
-          DOM.siteMain().classList.remove("site-blip-out");
           DOM.overridebtn().remove();
 
           SoundManager.playPostBeep();
 
           runFullScreenBootAnimation(() => {
             log.innerHTML = "";
+            const siteMain = DOM.siteMain();
+            siteMain.classList.remove("site-blip-out");
+            siteMain.classList.add("site-warm-up");
+            setTimeout(() => siteMain.classList.remove("site-warm-up"), 600);
           });
           break;
         }
