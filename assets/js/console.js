@@ -3,27 +3,62 @@
 (function () {
   const SoundManager = {
     ctx: null,
+    masterGain: null,
+    noiseBuffer: null,
 
+    /**
+     * Initializes the AudioContext, master gain, and compressor.
+     * Pre-generates the noise buffer to save CPU during typing.
+     */
     init() {
       if (!this.ctx) {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+
+        // Dynamics Compressor prevents "clipping" when sounds overlap
+        const compressor = this.ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
+        compressor.knee.setValueAtTime(40, this.ctx.currentTime);
+        compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
+
+        compressor.connect(this.masterGain);
+        this.masterGain.connect(this.ctx.destination);
+
+        this._generateNoiseBuffer();
       } else if (this.ctx.state === "suspended") {
         this.ctx.resume();
       }
     },
 
+    /**
+     * Internal helper: Generates 1 second of white noise for reuse.
+     */
+    _generateNoiseBuffer() {
+      const size = this.ctx.sampleRate;
+      this.noiseBuffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0);
+      for (let i = 0; i < size; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+    },
+
+    /**
+     * Ensures the audio context is active before playing sound.
+     */
     _ensureContext() {
       return this.ctx || (this.init(), this.ctx);
     },
 
-    _noise(freq, duration, volume, q = 1) {
-      const bufferSize = this.ctx.sampleRate * duration;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    /**
+     * Internal helper: Plays filtered noise from the cached buffer.
+     */
+    _playNoise(freq, duration, volume, q = 1) {
+      const source = this.ctx.createBufferSource();
+      source.buffer = this.noiseBuffer;
 
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
       const filter = this.ctx.createBiquadFilter();
       filter.type = "bandpass";
       filter.frequency.value = freq;
@@ -36,127 +71,122 @@
         this.ctx.currentTime + duration,
       );
 
-      noise.connect(filter);
+      source.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
-      noise.start();
+      gain.connect(this.masterGain);
+      source.start();
+      source.stop(this.ctx.currentTime + duration);
     },
 
-    _tone(freq, duration, volume, type = "sine", rampEndFreq = null) {
+    /**
+     * Internal helper: Unified oscillator method for beeps and tones.
+     */
+    _beep(
+      freq,
+      duration,
+      volume,
+      type = "sine",
+      startTime = 0,
+      isStaccato = false,
+    ) {
+      const t = this.ctx.currentTime + startTime;
       const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const g = this.ctx.createGain();
 
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(freq, t);
 
-      if (rampEndFreq) {
-        osc.frequency.exponentialRampToValueAtTime(
-          rampEndFreq,
-          this.ctx.currentTime + duration,
-        );
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(volume, t + 0.01); // Quick attack
+
+      if (isStaccato) {
+        // Hard cut: stay at full volume until the very end
+        g.gain.setValueAtTime(volume, t + duration - 0.01);
+        g.gain.linearRampToValueAtTime(0, t + duration);
+      } else {
+        // Musical fade: the "note drop" effect
+        g.gain.exponentialRampToValueAtTime(0.001, t + duration);
       }
 
-      gain.gain.setValueAtTime(volume, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        this.ctx.currentTime + duration,
-      );
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + duration);
+      osc.connect(g);
+      g.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + duration + 0.01);
     },
 
+    /**
+     * RESTORED: Internal helper for Power On/Off hums.
+     */
     _powerTone(startFreq, endFreq, isPowerOn) {
-      const gain = this.ctx.createGain();
-      const duration = 1.5;
-      const rampTime = 0.2;
+      const now = this.ctx.currentTime;
+      const duration = 1.2;
+      const g = this.ctx.createGain();
 
-      [1, 2].forEach((multiplier) => {
+      // Layered oscillators for a thicker, mechanical drone
+      [1, 1.5].forEach((mult) => {
         const osc = this.ctx.createOscillator();
         osc.type = "sine";
-        osc.frequency.setValueAtTime(
-          startFreq * multiplier,
-          this.ctx.currentTime,
-        );
-        osc.frequency.exponentialRampToValueAtTime(
-          endFreq * multiplier,
-          this.ctx.currentTime + rampTime,
-        );
-        osc.connect(gain);
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
+        osc.frequency.setValueAtTime(startFreq * mult, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq * mult, now + 0.3);
+        osc.connect(g);
+        osc.start(now);
+        osc.stop(now + duration);
       });
 
       if (isPowerOn) {
-        gain.gain.setValueAtTime(0, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.05);
-        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + duration);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.1, now + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
       } else {
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + duration);
+        g.gain.setValueAtTime(0.1, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
       }
 
-      gain.connect(this.ctx.destination);
+      g.connect(this.masterGain);
     },
 
+    // --- PUBLIC API ---
+
     playKey() {
-      if (this._ensureContext()) this._noise(3000, 0.015, 0.08);
+      if (this._ensureContext()) this._playNoise(3000, 0.02, 0.05, 1.5);
     },
 
     playSpace() {
-      if (this._ensureContext()) this._noise(800, 0.03, 0.1);
+      if (this._ensureContext()) this._playNoise(800, 0.03, 0.1);
     },
 
     playEnter() {
-      if (!this._ensureContext()) return;
-      this._noise(200, 0.1, 0.1, 0.5);
-      this._noise(3000, 0.015, 0.08);
+      if (this._ensureContext()) {
+        this._playNoise(200, 0.15, 0.1, 0.5); // Thud
+        this._playNoise(3000, 0.02, 0.08, 1.5); // Click
+      }
     },
 
     playError() {
       if (!this._ensureContext()) return;
-
-      const now = this.ctx.currentTime;
-      const bursts = 3;
-      const spacing = 0.12;
-
-      for (let i = 0; i < bursts; i++) {
-        const startTime = now + i * spacing;
-        const duration = 0.1;
-
-        const sweep = this.ctx.createOscillator();
-        const sweepGain = this.ctx.createGain();
-
-        sweep.type = "sawtooth";
-        sweep.frequency.setValueAtTime(400, startTime);
-        sweep.frequency.exponentialRampToValueAtTime(
-          1200,
-          startTime + duration,
-        );
-
-        sweepGain.gain.setValueAtTime(0, startTime);
-        sweepGain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
-        sweepGain.gain.linearRampToValueAtTime(0, startTime + duration);
-
-        sweep.connect(sweepGain);
-        sweepGain.connect(this.ctx.destination);
-
-        sweep.start(startTime);
-        sweep.stop(startTime + duration);
-
-        this._noise(5000, 0.05, 0.1, 0.5);
+      for (let i = 0; i < 3; i++) {
+        const t = i * 0.12;
+        this._beep(400, 0.1, 0.1, "sawtooth", t);
+        setTimeout(() => this._playNoise(100, 0.1, 0.1, 0.5), i * 120);
       }
     },
 
     playPowerOn() {
-      this.init();
-      this._powerTone(50, 60, true);
+      if (this._ensureContext()) this._powerTone(60, 110, true);
     },
 
     playPowerOff() {
-      if (this._ensureContext()) this._powerTone(60, 50, false);
+      if (this._ensureContext()) this._powerTone(110, 40, false);
+    },
+
+    playPostBeep() {
+      if (this._ensureContext()) this._beep(950, 0.3, 0.15, "square", 0, true);
+    },
+
+    playLogin() {
+      if (!this._ensureContext()) return;
+      const notes = [392, 523, 659, 783];
+      notes.forEach((f, i) => this._beep(f, 0.4, 0.1, "sine", i * 0.12));
     },
   };
 
@@ -169,6 +199,7 @@
     siteMain: () => document.querySelector("main.container"),
     navContainer: () => document.querySelector("nav#nav-container ul"),
     sidebar: () => document.querySelector("#sidebar"),
+    overridebtn: () => document.getElementById("override-btn"),
   };
 
   const appendCss = () => {
@@ -193,6 +224,7 @@
     "coffee",
     "glass",
     "version",
+    "docker",
   ];
 
   async function startTransition() {
@@ -495,22 +527,33 @@
   function handleTabCompletion(inputEl) {
     const val = inputEl.value.trim().toLowerCase();
     if (!val) return;
-    const parts = val.split(/\s+/);
-    const lastPart = parts[parts.length - 1];
 
     let foundMatch = false;
-
-    if (parts.length === 1) {
-      const match = COMMANDS.find((c) => c.startsWith(val));
+    if (val.startsWith("./")) {
+      const fileCommand = val.slice(2);
+      const match = virtualFS.find((f) => f.name.startsWith(fileCommand));
       if (match) {
-        inputEl.value = match;
+        inputEl.value = `./${match.name}`;
         foundMatch = true;
       }
-    } else if (parts[0] === "cat") {
-      const match = virtualFS.find((f) => f.name.startsWith(lastPart));
-      if (match) {
-        inputEl.value = `cat ${match.name}`;
-        foundMatch = true;
+    }
+
+    if (!foundMatch) {
+      const parts = val.split(/\s+/);
+      const lastPart = parts[parts.length - 1];
+
+      if (parts.length === 1) {
+        const match = COMMANDS.find((c) => c.startsWith(val));
+        if (match) {
+          inputEl.value = match;
+          foundMatch = true;
+        }
+      } else {
+        const match = virtualFS.find((f) => f.name.startsWith(lastPart));
+        if (match) {
+          inputEl.value = `${parts.slice(0, -1).join(" ")} ${match.name}`;
+          foundMatch = true;
+        }
       }
     }
 
@@ -759,6 +802,58 @@
         break;
       }
 
+      case "docker":
+        const [subCommand, image, targetFile] = args;
+
+        if (subCommand === "images") {
+          printText("REPOSITORY                TAG       IMAGE ID       SIZE");
+          printText("vanguard/core-system      latest    a1b2c3d4e5f6   420MB");
+          printText("vanguard/decrypt-tool     v1.0      f9e8d7c6b5a4   125MB"); // The Easter Egg
+        } else if (subCommand === "run" && image === "vanguard/decrypt-tool") {
+          if (targetFile === "manifesto.md") {
+            printText("Initializing vanguard/decrypt-tool...");
+            printText("Pulling system dependencies... [OK]");
+            printText("Brute-forcing manifesto.md headers...");
+
+            printHtml(
+              `CRACKING: [<span class="terminal-skill-bar">████████████████</span>] 100%`,
+            );
+            printText("SUCCESS: Fragment recovered and saved to virtualFS.");
+
+            SoundManager.playLogin();
+
+            if (!virtualFS.find((f) => f.name === "breach_protocol.sh")) {
+              virtualFS.push({
+                name: "breach_protocol.sh",
+                title: "...",
+                content: "Run me...",
+                size: 2 * 1024,
+                anchor: "#",
+                readAccess: true,
+                admin: false,
+              });
+            }
+          } else if (!targetFile) {
+            printText(
+              "Usage: docker run vanguard/decrypt-tool <filename>",
+              "text-error",
+            );
+          } else if (virtualFS.find((f) => f.name === targetFile)) {
+            printText(
+              `ERROR: Unable to decrypt ${targetFile}. File is not encrypted.`,
+              "text-error",
+            );
+          } else {
+            printText(
+              `ERROR: Unable to decrypt ${targetFile}. File does not exist.`,
+              "text-error",
+            );
+          }
+        } else {
+          printText("docker: invalid arguments.", "text-error");
+        }
+        break;
+
       case "help":
         printText("Available commands:");
         printHtml(
@@ -778,6 +873,9 @@
         );
         printHtml(
           "  <span class='text-command'>instagram</span>  - Open Instagram profile",
+        );
+        printHtml(
+          "  <span class='text-command'>docker</span>     - Docker container management",
         );
         printHtml(
           "  <span class='text-command'>coffee</span>     - Toggle coffee mode",
@@ -840,12 +938,29 @@
         break;
       }
 
+      case "./breach_protocol.sh": {
+        if (virtualFS.find((f) => f.name === "breach_protocol.sh")) {
+          DOM.overlay().remove();
+          DOM.siteMain().classList.remove("site-blip-out");
+          DOM.overridebtn().remove();
+
+          SoundManager.playPostBeep();
+
+          runFullScreenBootAnimation(() => {
+            log.innerHTML = "";
+          });
+          break;
+        }
+      }
+
       default:
         printText(`UNKNOWN COMMAND: ${cmd}`, "text-error");
     }
 
     const ov = DOM.overlay();
-    ov.scrollTo({ top: ov.scrollHeight, behavior: "smooth" });
+    if (ov) {
+      ov.scrollTo({ top: ov.scrollHeight, behavior: "smooth" });
+    }
   }
 
   function createRainbowAscii(input) {
@@ -876,6 +991,306 @@
 
     htmlOutput += `</div>`;
     return htmlOutput;
+  }
+
+  function runFullScreenBootAnimation(onFinish) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.style.position = "fixed";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.style.zIndex = "999999";
+    canvas.style.background = "black";
+
+    document.body.appendChild(canvas);
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    ctx.font = "18px monospace";
+    ctx.fillStyle = "#00ff55";
+    ctx.textBaseline = "top";
+
+    function drawScanlines() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+      for (let y = 0; y < canvas.height; y += 3) {
+        ctx.fillRect(0, y, canvas.width, 1);
+      }
+      ctx.fillStyle = "#00ff55";
+    }
+
+    function clear() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#00ff55";
+    }
+
+    let lineY = 20;
+    function println(text = "") {
+      ctx.fillText(text, 20, lineY);
+      lineY += 22;
+    }
+
+    function biosSplash(next) {
+      clear();
+      lineY = 40;
+
+      const biosArt = [
+        "PhoenixBIOS(tm) v4.0 Release 6.0",
+        "Copyright 1985-2024 Phoenix Technologies Ltd.",
+        "",
+        "CPU: QuantumFlux X9 @ 9.99 THz",
+        "Memory Test: 16384MB OK",
+        "Detecting IDE Drives...",
+        "  Primary Master:  HyperDrive 9000",
+        "  Primary Slave:   None",
+        "",
+        "Press DEL to enter setup...",
+      ];
+
+      let i = 0;
+      function step() {
+        if (i < biosArt.length) {
+          println(biosArt[i]);
+          drawScanlines();
+          i++;
+          setTimeout(step, 200);
+        } else {
+          setTimeout(next, 800);
+        }
+      }
+      step();
+    }
+
+    function linuxBoot(next) {
+      clear();
+      lineY = 20;
+
+      const logs = [
+        "[    0.000000] Booting HyperLinux Kernel 5.99.1",
+        "[    0.000001] Initializing cgroup subsys cpuset",
+        "[    0.000002] Initializing cgroup subsys cpu",
+        "[    0.000003] Initializing cgroup subsys cpuacct",
+        "[    0.004000] CPU0: QuantumFlux X9 (family: 0x6, model: 0x9F)",
+        "[    0.008000] Memory: 16384MB available",
+        "[    0.010000] Running memory check...",
+      ];
+
+      for (let i = 0; i < 20; i++) {
+        logs.push(`[    0.${1000 + i}] Checking block ${i}... OK`);
+      }
+
+      logs.push("[    1.500000] Loading drivers...");
+      logs.push("[    2.000000] System ready.");
+
+      let i = 0;
+      function step() {
+        if (i < logs.length) {
+          println(logs[i]);
+          drawScanlines();
+          i++;
+          setTimeout(step, 80 + Math.random() * 80);
+        } else {
+          setTimeout(next, 500);
+        }
+      }
+      step();
+    }
+
+    function spinner(next) {
+      clear();
+      lineY = canvas.height / 2;
+
+      const frames = ["|", "/", "-", "\\"];
+      let frameIndex = 0;
+      let speed = 200;
+
+      function spin() {
+        clear();
+        ctx.fillText(frames[frameIndex], canvas.width / 2, lineY);
+        drawScanlines();
+
+        frameIndex = (frameIndex + 1) % frames.length;
+        speed *= 0.9;
+
+        if (speed < 40) {
+          return next();
+        }
+
+        setTimeout(spin, speed);
+      }
+
+      spin();
+    }
+
+    function matrixDissolve(next) {
+      function glitchOut(callback) {
+        let t = 0;
+
+        function frame() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let i = 0; i < 25; i++) {
+            const y = Math.random() * canvas.height;
+            const h = 5 + Math.random() * 25;
+            ctx.fillStyle = `rgba(0,255,85,${Math.random()})`;
+            ctx.fillRect(0, y, canvas.width, h);
+          }
+
+          drawScanlines();
+
+          t++;
+          if (t < 20) requestAnimationFrame(frame);
+          else callback();
+        }
+
+        frame();
+      }
+
+      function startMatrix(callback) {
+        const columns = Math.floor(canvas.width / 20);
+        const drops = Array(columns).fill(0);
+
+        let running = true;
+
+        function draw() {
+          if (!running) return;
+
+          ctx.fillStyle = "rgba(0,0,0,0.05)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "rgba(0,255,85,1)";
+          ctx.font = "20px monospace";
+
+          for (let i = 0; i < drops.length; i++) {
+            const char = String.fromCharCode(0x30a0 + Math.random() * 96);
+            const x = i * 20;
+            const y = drops[i] * 20;
+
+            ctx.fillText(char, x, y);
+
+            if (y > canvas.height || Math.random() > 0.975) {
+              drops[i] = 0;
+            }
+
+            drops[i]++;
+          }
+
+          drawScanlines();
+          requestAnimationFrame(draw);
+        }
+
+        draw();
+
+        setTimeout(() => {
+          running = false;
+          callback();
+        }, 2500);
+      }
+
+      function crtCollapse(callback) {
+        SoundManager.playPowerOff();
+        let height = canvas.height;
+
+        function frame() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          height *= 0.85;
+
+          ctx.fillStyle = "rgba(0,255,85,1)";
+          ctx.fillRect(0, canvas.height / 2 - height / 2, canvas.width, height);
+
+          drawScanlines();
+
+          if (height < 2) {
+            return collapseDot(callback);
+          }
+
+          requestAnimationFrame(frame);
+        }
+
+        frame();
+      }
+
+      function collapseDot(callback) {
+        let radius = canvas.width / 2;
+
+        function frame() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          radius *= 0.8;
+
+          ctx.beginPath();
+          ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0,255,85,1)";
+          ctx.fill();
+
+          drawScanlines();
+
+          if (radius < 1) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return callback();
+          }
+
+          requestAnimationFrame(frame);
+        }
+
+        frame();
+      }
+
+      function crtPowerOn(callback) {
+        let bloom = 0;
+
+        function frame() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Bright green flash expanding outward
+          ctx.fillStyle = `rgba(0,255,85,${1 - bloom})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          drawScanlines();
+
+          bloom += 0.05;
+
+          if (bloom < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            callback();
+          }
+        }
+
+        frame();
+      }
+
+      function fadeCanvas(callback) {
+        canvas.style.transition = "opacity 1.2s ease-out";
+        canvas.style.opacity = "0";
+        setTimeout(callback, 1300);
+      }
+
+      glitchOut(() =>
+        startMatrix(() =>
+          crtCollapse(() => crtPowerOn(() => fadeCanvas(next))),
+        ),
+      );
+    }
+
+    function cleanup() {
+      document.body.removeChild(canvas);
+      window.removeEventListener("resize", resize);
+      if (onFinish) onFinish();
+    }
+
+    biosSplash(() =>
+      linuxBoot(() => spinner(() => matrixDissolve(() => cleanup()))),
+    );
   }
 
   function setupEventListeners() {

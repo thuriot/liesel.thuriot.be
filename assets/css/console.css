@@ -136,7 +136,7 @@ main.site-warm-up {
   width: 100vw;
   height: 100vh;
   background: var(--color-black);
-  z-index: 99999;
+  z-index: 99990;
   display: none;
   flex-direction: column;
   padding: 2rem;
@@ -396,7 +396,7 @@ main.site-warm-up {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 99999;
+  z-index: 99990;
   font-family: "Share Tech Mono", monospace;
   color: var(--color-primary);
 }
