@@ -887,6 +887,9 @@
           "  <span class='text-command'>sudo</span>       - Attempt privilege escalation",
         );
         printHtml(
+          "  <span class='text-command'>whoami</span>     - Display user profile",
+        );
+        printHtml(
           "  <span class='text-command'>clear</span>      - Clear terminal screen",
         );
         printHtml(
