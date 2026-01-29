@@ -456,11 +456,11 @@
     const log = DOM.log();
 
     const BOOT_LINES = [
-      //"ERR: SIGNAL INTERFERENCE DETECTED...",
-      //"BYPASSING SECURITY PROTOCOLS...",
-      //"MOUNTING VIRTUAL_FILE_SYSTEM...",
-      //"SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
-      //"TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
+      "ERR: SIGNAL INTERFERENCE DETECTED...",
+      "BYPASSING SECURITY PROTOCOLS...",
+      "MOUNTING VIRTUAL_FILE_SYSTEM...",
+      "SYSTEM STABILIZED. ACCESS LEVEL: GUEST",
+      "TYPE 'LS' TO LIST ARTICLES OR 'HELP' FOR COMMANDS.",
     ];
 
     for (const line of BOOT_LINES) {
@@ -1357,7 +1357,7 @@
         if (dot) dot.remove();
         startTransition();
       };
-    }, 1);
+    }, 2500);
   }
 
   appendCss();
