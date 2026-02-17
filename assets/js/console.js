@@ -354,7 +354,7 @@
                 node.parentElement.parentElement?.classList.contains("timeline")
               ) {
                 contentParts.push(`  ${t}`);
-              } else {
+              } else if (!node.classList.contains("badge")) {
                 contentParts.push(t);
               }
             }
