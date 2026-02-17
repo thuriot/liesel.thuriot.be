@@ -304,7 +304,6 @@ body,
   border-width: 2px !important;
 }
 
-/* Inline code styling for better visibility in both modes */
 code {
   background: rgba(var(--bs-primary-rgb), 0.1);
   color: var(--bs-primary);
