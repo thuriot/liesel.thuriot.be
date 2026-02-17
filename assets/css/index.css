@@ -2,7 +2,8 @@
   --body-animation-color-1: rgba(55, 0, 51, 1);
   --body-animation-color-2: rgba(30, 66, 103, 1);
   --body-animation-color-3: rgba(24, 119, 113, 1);
-  --body-animation-color-4: rgba(139, 0, 139, 1);
+  --body-animation-color-4: rgba(139, 0, 139, 1);  
+  --box-shadow-rgba: rgba(0, 0, 0, 0.4);
 }
 
 [data-bs-theme="light"] {
@@ -12,6 +13,7 @@
   --body-animation-color-2: rgba(130, 166, 203, 1);
   --body-animation-color-3: rgba(124, 219, 213, 1);
   --body-animation-color-4: rgba(219, 100, 219, 1);
+  --box-shadow-rgba: rgba(0, 0, 0, 0.1);
 }
 
 .merriweather {
@@ -266,7 +268,7 @@ body,
   width: auto;
 }
 
-.linktree a.list-group-item-action span  {
+.linktree a.list-group-item-action span {
   margin-right: 4.125rem;
 }
 
@@ -283,6 +285,31 @@ body,
 
 .fade-in-up {
   animation: 0.5s fadeInUp;
+}
+
+.shadow-hover {
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s ease;
+}
+
+.shadow-hover:hover {
+  transform: translateY(-8px);
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 .5rem 1.2rem var(--box-shadow-rgba) !important;
+}
+
+.border-dashed {
+  border-style: dashed !important;
+  border-width: 2px !important;
+}
+
+/* Inline code styling for better visibility in both modes */
+code {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
 }
 
 @media (min-width: 992px) {
