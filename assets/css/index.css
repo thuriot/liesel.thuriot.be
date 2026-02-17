@@ -141,10 +141,6 @@ body {
   overflow: hidden;
 }
 
-.socials {
-  cursor: pointer;
-}
-
 .link-body {
   --bs-link-color-rgb: var(--bs-body-color);
 }
