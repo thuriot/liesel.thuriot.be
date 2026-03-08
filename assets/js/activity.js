@@ -14,7 +14,7 @@
             
             activityContainer.id = anchorId;
             activityContainer.className = "position-absolute top-0 end-0 m-2";
-            activityContainer.setAttribute("aria-label", "Open Last.fm profile");
+            activityContainer.setAttribute("aria-label", "What am I current up to?");
 
             document.body.appendChild(activityContainer);
           }
