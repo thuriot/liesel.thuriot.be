@@ -6,7 +6,7 @@
       const anchorId = "currently-playing";
       let activityContainer = document.getElementById(anchorId);
 
-      fetch("https://activity.thuriot.be")
+      fetch("https://activity.thuriot.be/badge")
         .then((response) => response.text())
         .then((svgContent) => {
           if (!activityContainer) {
@@ -19,7 +19,10 @@
             document.body.appendChild(activityContainer);
           }
 
-          activityContainer.innerHTML = svgContent;
+          activityContainer.innerHTML =
+            '<a href="https://activity.thuriot.be/" target="_blank" rel="noopener noreferrer" aria-label="What am I current up to?">' +
+            svgContent +
+            "</a>";
         })
         .catch(err => {
           console.error(err);
