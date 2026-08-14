@@ -6,7 +6,7 @@
       const anchorId = "currently-playing";
       let activityContainer = document.getElementById(anchorId);
 
-      fetch("https://activity.thuriot.be/badge")
+      fetch("https://presence.liesel.dev/badge")
         .then((response) => response.text())
         .then((svgContent) => {
           if (!activityContainer) {
@@ -20,7 +20,7 @@
           }
 
           activityContainer.innerHTML =
-            '<a href="https://activity.thuriot.be/" target="_blank" rel="noopener noreferrer" aria-label="What am I current up to?">' +
+            '<a href="https://presence.liesel.dev/" target="_blank" rel="noopener noreferrer" aria-label="What am I current up to?">' +
             svgContent +
             "</a>";
         })
